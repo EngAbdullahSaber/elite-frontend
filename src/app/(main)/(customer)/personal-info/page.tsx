@@ -13,7 +13,7 @@ interface UserProfile {
   phoneNumber: string;
   email: string;
   fullName: string;
-  userType: شىغ;
+  userType: any;
   profilePhotoUrl: string | null;
   nationalIdUrl: string | null;
   residencyIdUrl: string | null;
