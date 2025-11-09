@@ -211,8 +211,7 @@ export default function CampaignActionsCard({
           },
           editAction,
         ];
-      case "cancelled":
-      case "completed":
+       case "completed":
         return [editAction];
       default:
         return [editAction];

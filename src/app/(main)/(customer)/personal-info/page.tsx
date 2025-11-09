@@ -154,7 +154,6 @@ export default function PersonalInfo() {
       <BasicInfoForm
         client={currentClient || fallbackClient}
         isCurentUser={true}
-        isLoading={loading}
       />
       <DeleteAccountSection />
     </div>

@@ -125,7 +125,7 @@ export default function CampaignFormUpdate({
           runType: data.runType,
           runFrequency:
             data.runType === "recurring" ? data.runFrequency : "daily",
-          runTime: formatTimeForAPI(data.runTime), // FIXED: Use proper time formatting
+          runTime: formatTimeForAPI(data?.runTime), // FIXED: Use proper time formatting
           status: data.isDraft ? "draft" : "scheduled",
           messageContent: data.messageContent!.trim(),
         };

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -8,14 +9,11 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    // Allow image optimization from these hosts
+    // Add production-safe domains only
+    domains: ["elite-back-end.vercel.app", "example.com"],
+
+    // Define remote image patterns allowed in <Image />
     remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "8081",
-        pathname: "/uploads/images/**",
-      },
       {
         protocol: "https",
         hostname: "elite-back-end.vercel.app",
@@ -27,8 +25,6 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-    // Optional: helps avoid domain mismatch errors on Vercel
-    unoptimized: false,
   },
 };
 

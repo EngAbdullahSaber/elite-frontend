@@ -20,7 +20,7 @@ export default function CampaignDetails({
 }: Props) {
   // Use actual stats from API or fallback to 0
   const stats = {
-    targetRecipients: campaign.targetRecipients || 0,
+    targetRecipients: campaign?.targetRecipients || 0,
     actualRecipients: campaign.actualRecipients || 0,
     views: campaign.views || 0,
     responses: campaign.responses || 0,
