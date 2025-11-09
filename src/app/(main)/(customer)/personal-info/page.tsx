@@ -14,6 +14,7 @@ interface UserProfile {
   email: string;
   fullName: string;
   userType: any;
+  image: any;
   profilePhotoUrl: string | null;
   nationalIdUrl: string | null;
   residencyIdUrl: string | null;

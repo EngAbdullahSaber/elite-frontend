@@ -12,9 +12,12 @@ export interface ClientRow {
   id: string;
   name: string;
   email: string;
+  image: any;
   phone: string;
   status: ClientStatus;
   joinedAt: string;
+  updatedAt: any;
+  createdAt: any;
   verificationStatus: string;
   userType: UserType;
   profilePhoto?: string | null;
