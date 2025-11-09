@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ["elite-back-end.vercel.app", "example.com"],
+    // Allow image optimization from these hosts
     remotePatterns: [
       {
         protocol: "http",
@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+    // Optional: helps avoid domain mismatch errors on Vercel
+    unoptimized: false,
   },
 };
 
