@@ -1,10 +1,11 @@
 // libs/axios.ts
 import axios from "axios";
 import { getHeaderConfig } from "./utils";
+import { baseUrl } from "./app.config";
 
 // Create axios instance
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: baseUrl,
 });
 
 // Add request interceptor to include auth token
