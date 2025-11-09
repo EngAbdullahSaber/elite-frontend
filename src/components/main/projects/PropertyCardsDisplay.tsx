@@ -4,6 +4,7 @@
 import useProperties from "@/hooks/dashboard/admin/properties/useProperties";
 import Link from "next/link";
 import Image from "next/image";
+import { ImageBaseUrl } from "@/libs/app.config";
 
 export default function PropertyCardsDisplay({
   isAdmin = false,
@@ -59,12 +60,19 @@ export default function PropertyCardsDisplay({
               {/* Property Image */}
               <div className="relative h-48 bg-gray-100">
                 {primaryImage ? (
-                  <Image
-                    src={primaryImage.mediaUrl}
+                  <img
+                    src={
+                      primaryImage.mediaUrl?.startsWith("http")
+                        ? primaryImage.mediaUrl
+                        : ImageBaseUrl + primaryImage.mediaUrl
+                    }
                     alt={property.title}
-                    fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={(e) => {
+                      // Fallback to placeholder if image fails to load
+                      e.currentTarget.src = "/placeholder-property.jpg";
+                    }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">

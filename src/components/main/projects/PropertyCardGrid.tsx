@@ -8,6 +8,7 @@ import FavoriteButton from "@/components/shared/FavoriteButton";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { BiEdit } from "react-icons/bi";
 import { propertyTypeLabels } from "@/types/property";
+import { ImageBaseUrl } from "@/libs/app.config";
 
 interface PropertyCardGridProps {
   property: any;
@@ -26,11 +27,25 @@ export default function PropertyCardGrid({
     property.area?.name || property.city?.name || "موقع غير محدد";
   const price = property.price ? parseFloat(property.price) : 0;
 
-  // Get first media URL or use placeholder
-  const imageUrl =
-    property.medias?.find((media: any) => media.isPrimary)?.mediaUrl ||
-    property.medias?.[0]?.mediaUrl ||
-    "/placeholder-property.jpg";
+  // Fix the image URL logic - return null instead of empty string
+  const getImageUrl = (property: any): string | null => {
+    // Check for primary media first
+    const primaryMedia = property.medias?.find((media: any) => media.isPrimary);
+    if (primaryMedia?.mediaUrl) {
+      return primaryMedia.mediaUrl;
+    }
+
+    // Check for first media with ImageBaseUrl
+    const firstMedia = property.medias?.[0];
+    if (firstMedia?.mediaUrl) {
+      return ImageBaseUrl + firstMedia.mediaUrl;
+    }
+
+    // Return null instead of empty string
+    return null;
+  };
+
+  const imageUrl = getImageUrl(property);
 
   // Property type handling
   const propertyType = property.propertyType?.name || "شقة";
@@ -50,16 +65,27 @@ export default function PropertyCardGrid({
   return (
     <div className="w-full max-[520px]:w-full min-[520px]:max-w-[480px] mx-auto bg-white shadow-lg rounded-xl overflow-hidden flex flex-col border border-gray-100 transition hover:shadow-2xl hover:-translate-y-1 hover:border-primary/30">
       <div className="relative h-[200px] sm:h-[240px] md:h-[260px] group overflow-hidden">
-        <Image
-          src={imageUrl}
-          alt={title}
-          fill
-          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            // Fallback if image fails to load
-            (e.target as HTMLImageElement).src = "/placeholder-property.jpg";
-          }}
-        />
+        {/* Conditionally render image only when URL is available */}
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={title}
+            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              e.currentTarget.src = "/placeholder-property.jpg";
+            }}
+          />
+        ) : (
+          // Show placeholder when no image is available
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <div className="text-center text-gray-500">
+              <div className="text-4xl mb-2">🏠</div>
+              <p className="text-sm">لا توجد صورة</p>
+            </div>
+          </div>
+        )}
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-0" />
         <Link
           href={`/projects?type=${propertyTypeKey}`}
