@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ["localhost", "127.0.0.1", "example.com"],
+    domains: ["elite-back-end.vercel.app", "example.com"],
     remotePatterns: [
       {
         protocol: "http",
@@ -17,9 +17,8 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/images/**",
       },
       {
-        protocol: "http",
-        hostname: "127.0.0.1",
-        port: "8081",
+        protocol: "https",
+        hostname: "elite-back-end.vercel.app",
         pathname: "/uploads/images/**",
       },
       {
