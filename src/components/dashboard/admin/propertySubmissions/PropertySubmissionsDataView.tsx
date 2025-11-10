@@ -45,7 +45,7 @@ export default function PropertySubmissionsDataView({
       columns={propertySubmissionColumns}
       filters={propertySubmissionFilters}
       sortConfig={propertySubmissionSortConfig}
-      showSearch
+      showSearch={false}
       showSort
       getRows={getRows}
       showActions

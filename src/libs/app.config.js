@@ -1,3 +1,3 @@
-export const baseUrl = "https://elite-back-end.vercel.app/",
-  ImageBaseUrl = "https://elite-back-end.vercel.app",
+export const baseUrl = "http://localhost:8081/",
+  ImageBaseUrl = "http://localhost:8081",
   headerConfigKeyName = "EilateGate";

@@ -25,7 +25,7 @@ type CityOption = {
 };
 
 export default function ProjectsFilterPanel({
-  defaultPriceRange = { min: 0, max: 10000000 },
+  defaultPriceRange = { min: 0, max: 100000000000 },
 }: {
   defaultPriceRange?: PriceRange;
 }) {
@@ -183,12 +183,11 @@ export default function ProjectsFilterPanel({
   // Property type options (you might want to fetch these from an API too)
   const propertyTypeOptions = [
     { value: "", label: "جميع أنواع العقارات" },
-    { value: "1", label: "شقة" },
-    { value: "2", label: "فيلا" },
-    { value: "3", label: "منزل" },
-    { value: "4", label: "أرض" },
-    { value: "5", label: "مكتب" },
-    { value: "6", label: "محل تجاري" },
+    { value: "apartments", label: "شقة" },
+    { value: "villas", label: "فيلا" },
+    { value: "residential-land", label: "اراضى سكنية" },
+    { value: "commercial-land", label: "اراضى تجارية" },
+    { value: "offices", label: "مكاتب إدارية" },
   ];
 
   return (

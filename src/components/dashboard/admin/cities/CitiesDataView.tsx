@@ -18,7 +18,7 @@ export default function CitiesDataView() {
     <DataView<CityRow>
       columns={cityColumns}
       getRows={getRows}
-      showActions
+      showActions={false}
       sortConfig={citySortConfig}
       showSort={true}
       showSearch={false}

@@ -52,11 +52,7 @@ export const appointmentFilters: FilterConfig[] = [
     ],
     default: "all",
   },
-  {
-    type: "dateRange",
-    label: "تاريخ الموعد",
-    key: "appointmentAt",
-  },
+
   // Remove isPaid filter since it's not in API
   // {
   //     key: 'isPaid',
@@ -69,34 +65,10 @@ export const appointmentFilters: FilterConfig[] = [
   //     ],
   //     default: 'all',
   // },
-  {
-    key: "agentId",
-    label: "الوسيط",
-    type: "custom",
-    component: ({ value, onChange }) => {
-      // Use the agents array directly instead of mockAppointments
-      const selectedAgent = agents.find(
-        (agent) => agent.id.toString() === value
-      );
-      return (
-        <AgentFilterPopup
-          selectedAgent={selectedAgent}
-          onSelect={(agent) => onChange(agent.id.toString())}
-          onClear={() => onChange(undefined)}
-        />
-      );
-    },
-  },
 ];
 
 export const appointmentSortConfig: SortConfig = {
-  sortFields: [
-    { label: "الحالة", value: "status" },
-    { label: "اسم الوسيط", value: "agentName" },
-    { label: "اسم العميل", value: "clientName" },
-    { label: "اسم المشروع", value: "projectTitle" },
-    { label: "موعد الزيارة", value: "appointmentAt" },
-  ],
+  sortFields: [],
   defaultSort: "appointmentAt",
 };
 

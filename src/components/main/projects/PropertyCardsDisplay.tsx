@@ -52,7 +52,7 @@ export default function PropertyCardsDisplay({
             href={
               isAdmin
                 ? `/dashboard/admin/properties/${property.id}`
-                : `/properties/${property.id}`
+                : `/projects/${property.id}`
             }
             className="block group"
           >

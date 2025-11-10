@@ -18,18 +18,27 @@ export function useCities() {
       totalCount?: number;
     }> => {
       try {
-        // Get cities with areas count
-        const response = await getCitiesWithRegionsCount(_signal);
+        // Extract filter parameters from URL
+        const search = searchParams.get("search") || "";
+        const status = searchParams.get("status") || "";
+
+        // Prepare filter parameters for API
+        const filters: Record<string, string> = {};
+        if (search) filters.search = search;
+        if (status) filters.status = status;
+
+        // Get cities with areas count AND filters
+        const response = await getCitiesWithRegionsCount(_signal, filters);
 
         const rows: CityRow[] = response.records.map((city: any) => ({
           id: city.id,
           name: city.name,
-          regionsCount: city.areasCount, // Using the areasCount from the service
+          regionsCount: city.areasCount,
           isActive: city.isActive,
           createdAt: city.createdAt,
         }));
 
-        // Apply sorting
+        // Apply client-side sorting (if needed, otherwise handle on server)
         const sort = searchParams.get("sort");
         const dir = searchParams.get("dir");
 

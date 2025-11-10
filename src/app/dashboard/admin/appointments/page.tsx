@@ -1,7 +1,6 @@
 "use client";
 import AppointmentsDataView from "@/components/dashboard/appointments/AppointmentsDataView";
 import DashboardHeaderTitle from "@/components/dashboard/DashboardHeaderTitle";
-import DownloadList from "@/components/shared/DownloadContent";
 import StandaloneDownloadContent from "@/components/shared/StandaloneDownloadContent";
 import Link from "next/link";
 import { useState } from "react";

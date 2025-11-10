@@ -7,7 +7,7 @@ import OtpForm from "./OtpForm";
 import PasswordForm from "./PasswordForm";
 import LogoLink from "@/components/shared/LogoLink";
 import { Login, SendOtp, VerifyOtp } from "@/services/Auth/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { headerConfigKeyName } from "@/libs/app.config";
 import toast from "react-hot-toast";
 
@@ -21,7 +21,10 @@ export default function SectionForm() {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl") || "/";
 
   const handleSendOtp = async () => {
     if (!email) {
@@ -33,7 +36,7 @@ export default function SectionForm() {
     setError("");
 
     try {
-      const response = await SendOtp({ email: email, purpose: "login" });
+      const response = await SendOtp({ email: email });
 
       if (response) {
         setOtpSent(true);
@@ -108,19 +111,26 @@ export default function SectionForm() {
       },
     });
 
-    switch (userType) {
-      case "admin":
-        router.push("dashboard/admin");
-        break;
-      case "agent":
-        router.push("dashboard/agent");
-        break;
-      case "customer":
-        router.push("/");
-        break;
-      default:
-        router.push("/");
-        break;
+    // Check if there's a return URL from protected pages
+    if (returnUrl && returnUrl !== "/") {
+      // Redirect to the original page the user came from
+      router.push(returnUrl);
+    } else {
+      // Default redirect based on user type
+      switch (userType) {
+        case "admin":
+          router.push("/dashboard/admin");
+          break;
+        case "agent":
+          router.push("/dashboard/agent");
+          break;
+        case "customer":
+          router.push("/");
+          break;
+        default:
+          router.push("/");
+          break;
+      }
     }
   };
 
@@ -152,14 +162,14 @@ export default function SectionForm() {
         email: email,
         password: password,
       });
-
+      console.log(response);
       if (response) {
         // Store tokens in localStorage
         localStorage.setItem(headerConfigKeyName, response.accessToken);
         localStorage.setItem("refreshToken", response.refreshToken);
         localStorage.setItem("user", JSON.stringify(response));
 
-        // Redirect based on user type
+        // Redirect based on user type and return URL
         redirectUser(response.userType);
       } else {
         const errorMsg = "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.";
@@ -254,14 +264,14 @@ export default function SectionForm() {
         email: email,
         otp: otp,
       });
-
+      console.log(response);
       if (response) {
         // Store tokens in localStorage
-        localStorage.setItem("token", response.accessToken);
+        localStorage.setItem(headerConfigKeyName, response.accessToken);
         localStorage.setItem("refreshToken", response.refreshToken);
         localStorage.setItem("user", JSON.stringify(response));
 
-        // Redirect based on user type
+        // Redirect based on user type and return URL
         redirectUser(response.userType);
       } else {
         const errorMsg = "رمز التحقق غير صحيح. يرجى المحاولة مرة أخرى.";
@@ -371,6 +381,13 @@ export default function SectionForm() {
           ? "أدخل رمز التحقق المرسل إلى بريدك الإلكتروني"
           : "أدخل بريدك الإلكتروني لإرسال رمز التحقق"}
       </p>
+
+      {/* Show return URL info if available */}
+      {returnUrl && returnUrl !== "/" && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 text-sm text-center">
+          سيتم إعادتك إلى الصفحة السابقة بعد تسجيل الدخول
+        </div>
+      )}
 
       <AuthTabs activeTab={activeTab} setActiveTab={handleTabChange} />
 

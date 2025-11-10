@@ -12,7 +12,10 @@ import {
   createCity,
   updateCity,
   updateRegion,
+  deleteRegion,
+  deleteCity,
 } from "@/services/cities/cities";
+import toast from "react-hot-toast";
 
 type Props = {
   cities: City[];
@@ -34,6 +37,10 @@ export default function CityWithRegionsForm({
   const [allCities, setAllCities] = useState<CityWithRegions[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [newCityName, setNewCityName] = useState("");
+  const [deletingItem, setDeletingItem] = useState<{
+    type: "city" | "region";
+    id: number;
+  } | null>(null);
 
   // Initialize cities with their regions
   useEffect(() => {
@@ -67,6 +74,10 @@ export default function CityWithRegionsForm({
         setAllCities(citiesWithRegions);
       } catch (error) {
         console.error("Error loading cities:", error);
+        toast.error("فشل في تحميل البيانات", {
+          duration: 5000,
+          position: "top-center",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -77,7 +88,13 @@ export default function CityWithRegionsForm({
 
   // City Operations
   const handleAddCity = async () => {
-    if (!newCityName.trim()) return;
+    if (!newCityName.trim()) {
+      toast.error("يرجى إدخال اسم المدينة", {
+        duration: 4000,
+        position: "top-center",
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -93,9 +110,24 @@ export default function CityWithRegionsForm({
 
       setAllCities((prev) => [...prev, newCity]);
       setNewCityName("");
+
+      toast.success("تم إضافة المدينة بنجاح", {
+        duration: 4000,
+        position: "top-center",
+        icon: "✅",
+        style: {
+          background: "#10B981",
+          color: "#fff",
+          borderRadius: "8px",
+          fontSize: "14px",
+        },
+      });
     } catch (error) {
       console.error("Error creating city:", error);
-      alert("فشل في إنشاء المدينة");
+      toast.error("فشل في إنشاء المدينة", {
+        duration: 5000,
+        position: "top-center",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +144,13 @@ export default function CityWithRegionsForm({
   };
 
   const handleUpdateCity = async (city: CityWithRegions) => {
-    if (!city.newRegionName?.trim()) return;
+    if (!city.newRegionName?.trim()) {
+      toast.error("يرجى إدخال اسم المدينة", {
+        duration: 4000,
+        position: "top-center",
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -125,11 +163,63 @@ export default function CityWithRegionsForm({
             : c
         )
       );
+
+      toast.success("تم تحديث المدينة بنجاح", {
+        duration: 4000,
+        position: "top-center",
+        icon: "✅",
+        style: {
+          background: "#10B981",
+          color: "#fff",
+          borderRadius: "8px",
+          fontSize: "14px",
+        },
+      });
     } catch (error) {
       console.error("Error updating city:", error);
-      alert("فشل في تحديث المدينة");
+      toast.error("فشل في تحديث المدينة", {
+        duration: 5000,
+        position: "top-center",
+      });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteCity = async (cityId: number) => {
+    setDeletingItem({ type: "city", id: cityId });
+    try {
+      await deleteCity(cityId);
+
+      setAllCities((prev) => prev.filter((c) => c.id !== cityId));
+
+      toast.success("تم حذف المدينة بنجاح", {
+        duration: 4000,
+        position: "top-center",
+        icon: "✅",
+        style: {
+          background: "#10B981",
+          color: "#fff",
+          borderRadius: "8px",
+          fontSize: "14px",
+        },
+      });
+    } catch (error: any) {
+      console.error("Error deleting city:", error);
+
+      let errorMessage = "فشل في حذف المدينة";
+      if (error.response?.status === 409) {
+        errorMessage = "لا يمكن حذف المدينة لأنها تحتوي على مناطق مرتبطة بها";
+      } else if (error.response?.status === 404) {
+        errorMessage = "المدينة غير موجودة";
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      });
+    } finally {
+      setDeletingItem(null);
     }
   };
 
@@ -143,7 +233,13 @@ export default function CityWithRegionsForm({
 
   // Region Operations
   const handleAddRegion = async (city: CityWithRegions) => {
-    if (!city.newRegionName?.trim()) return;
+    if (!city.newRegionName?.trim()) {
+      toast.error("يرجى إدخال اسم المنطقة", {
+        duration: 4000,
+        position: "top-center",
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -173,9 +269,24 @@ export default function CityWithRegionsForm({
             : c
         )
       );
+
+      toast.success("تم إضافة المنطقة بنجاح", {
+        duration: 4000,
+        position: "top-center",
+        icon: "✅",
+        style: {
+          background: "#10B981",
+          color: "#fff",
+          borderRadius: "8px",
+          fontSize: "14px",
+        },
+      });
     } catch (error) {
       console.error("Error creating region:", error);
-      alert("فشل في إنشاء المنطقة");
+      toast.error("فشل في إنشاء المنطقة", {
+        duration: 5000,
+        position: "top-center",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -202,7 +313,13 @@ export default function CityWithRegionsForm({
     city: CityWithRegions,
     region: Region & { tempName?: string }
   ) => {
-    if (!region.tempName?.trim()) return;
+    if (!region.tempName?.trim()) {
+      toast.error("يرجى إدخال اسم المنطقة", {
+        duration: 4000,
+        position: "top-center",
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -222,11 +339,76 @@ export default function CityWithRegionsForm({
             : c
         )
       );
+
+      toast.success("تم تحديث المنطقة بنجاح", {
+        duration: 4000,
+        position: "top-center",
+        icon: "✅",
+        style: {
+          background: "#10B981",
+          color: "#fff",
+          borderRadius: "8px",
+          fontSize: "14px",
+        },
+      });
     } catch (error) {
       console.error("Error updating region:", error);
-      alert("فشل في تحديث المنطقة");
+      toast.error("فشل في تحديث المنطقة", {
+        duration: 5000,
+        position: "top-center",
+      });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteRegion = async (cityId: number, regionId: number) => {
+    if (!confirm("هل أنت متأكد من حذف هذه المنطقة؟")) {
+      return;
+    }
+
+    setDeletingItem({ type: "region", id: regionId });
+    try {
+      await deleteRegion(regionId);
+
+      setAllCities((prev) =>
+        prev.map((c) =>
+          c.id === cityId
+            ? {
+                ...c,
+                regions: c.regions.filter((r) => r.id !== regionId),
+              }
+            : c
+        )
+      );
+
+      toast.success("تم حذف المنطقة بنجاح", {
+        duration: 4000,
+        position: "top-center",
+        icon: "✅",
+        style: {
+          background: "#10B981",
+          color: "#fff",
+          borderRadius: "8px",
+          fontSize: "14px",
+        },
+      });
+    } catch (error: any) {
+      console.error("Error deleting region:", error);
+
+      let errorMessage = "فشل في حذف المنطقة";
+      if (error.response?.status === 404) {
+        errorMessage = "المنطقة غير موجودة";
+      } else if (error.response?.status === 409) {
+        errorMessage = "لا يمكن حذف المنطقة لأنها مرتبطة ببيانات أخرى";
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      });
+    } finally {
+      setDeletingItem(null);
     }
   };
 
@@ -259,9 +441,24 @@ export default function CityWithRegionsForm({
 
     if (onSave) {
       onSave(payload);
-    } else {
-      alert("تم حفظ جميع البيانات بنجاح");
     }
+
+    toast.success("تم حفظ جميع البيانات بنجاح", {
+      duration: 4000,
+      position: "top-center",
+      icon: "✅",
+      style: {
+        background: "#10B981",
+        color: "#fff",
+        borderRadius: "8px",
+        fontSize: "14px",
+      },
+    });
+  };
+
+  // Check if item is currently being deleted
+  const isDeleting = (type: "city" | "region", id: number) => {
+    return deletingItem?.type === type && deletingItem?.id === id;
   };
 
   if (isLoading && allCities.length === 0) {
@@ -341,10 +538,21 @@ export default function CityWithRegionsForm({
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEditCity(city)}
-                        disabled={isLoading}
+                        disabled={isLoading || isDeleting("city", city.id)}
                         className="text-blue-500 hover:text-blue-700 p-2"
                       >
                         <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCity(city.id)}
+                        disabled={isLoading || isDeleting("city", city.id)}
+                        className="text-red-500 hover:text-red-700 p-2"
+                      >
+                        {isDeleting("city", city.id) ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                        ) : (
+                          <FaTrash />
+                        )}
                       </button>
                     </div>
                   </>
@@ -432,10 +640,27 @@ export default function CityWithRegionsForm({
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEditRegion(city, region)}
-                              disabled={isLoading}
+                              disabled={
+                                isLoading || isDeleting("region", region.id)
+                              }
                               className="text-blue-500 hover:text-blue-700 p-1"
                             >
                               <FaEdit />
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDeleteRegion(city.id, region.id)
+                              }
+                              disabled={
+                                isLoading || isDeleting("region", region.id)
+                              }
+                              className="text-red-500 hover:text-red-700 p-1"
+                            >
+                              {isDeleting("region", region.id) ? (
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-500"></div>
+                              ) : (
+                                <FaTrash />
+                              )}
                             </button>
                           </div>
                         </>
@@ -459,6 +684,16 @@ export default function CityWithRegionsForm({
             لا توجد مدن مضافة حتى الآن
           </div>
         )}
+
+        {/* Save All Button */}
+        <div className="flex justify-end pt-4">
+          <PrimaryButton
+            onClick={handleSaveAll}
+            disabled={isLoading || deletingItem !== null}
+          >
+            حفظ الكل
+          </PrimaryButton>
+        </div>
       </div>
     </Card>
   );

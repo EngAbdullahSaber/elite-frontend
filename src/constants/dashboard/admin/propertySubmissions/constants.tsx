@@ -19,8 +19,7 @@ export const propertySubmissionStatusMap: Record<
   string
 > = {
   pending: "قيد الانتظار",
-  under_review: "قيد المراجعة",
-  approved: "مقبول",
+  inspected: "قيد المراجعة",
   rejected: "مرفوض",
   published: "منشور",
 };
@@ -30,8 +29,7 @@ export const propertySubmissionStatusStyle: Record<
   string
 > = {
   pending: "bg-[#FFF8E1] text-[#9C6B00]",
-  under_review: "bg-[#E6F4FF] text-[#0369A1]",
-  approved: "bg-[#E9FBEA] text-[#1B7B3A]",
+  inspected: "bg-[#E6F4FF] text-[#0369A1]",
   rejected: "bg-[#FFF0F0] text-[#BE6464]",
   published: "bg-[#EBFBF2] text-[var(--secondary-500)]",
 };
@@ -44,39 +42,16 @@ export const propertySubmissionFilters: FilterConfig[] = [
     options: [
       { label: "الكل", value: "all" },
       { label: "قيد الانتظار", value: "pending" },
-      { label: "قيد المراجعة", value: "under_review" },
-      { label: "مقبول", value: "approved" },
+      { label: "قيد المراجعة", value: "inspected" },
       { label: "مرفوض", value: "rejected" },
       { label: "منشور", value: "published" },
     ],
     default: "all",
   },
-  {
-    type: "dateRange",
-    key: "createdAt",
-    label: "تاريخ الإنشاء",
-  },
-  {
-    type: "select",
-    key: "propertyType",
-    label: "نوع العقار",
-    default: "all",
-    options: [
-      { label: "الكل", value: "all" },
-      { label: "شقة", value: "1" }, // Use IDs from your API
-      { label: "فيلا", value: "2" },
-      { label: "أرض", value: "3" },
-    ],
-  },
 ];
 
 export const propertySubmissionSortConfig: SortConfig = {
-  sortFields: [
-    { label: "اسم مقدم الطلب", value: "requesterName" },
-    { label: "نوع العقار", value: "propertyType" },
-    { label: "الحالة", value: "status" },
-    { label: "تاريخ الإنشاء", value: "createdAt" },
-  ],
+  sortFields: [],
   defaultSort: "createdAt",
 };
 

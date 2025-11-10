@@ -395,10 +395,10 @@ export default function ProjectDetailsPage() {
         </div>
       </div>
 
-      <SimilarProjectsSection
+      {/* <SimilarProjectsSection
         projects={similarProjects}
         title="مشاريع مشابهة"
-      />
+      /> */}
     </div>
   );
 }

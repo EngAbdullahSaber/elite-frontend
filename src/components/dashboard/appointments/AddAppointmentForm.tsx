@@ -56,21 +56,28 @@ export default function AddAppointmentForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  // Use the hooks directly
+  const {
+    agents: agentsData,
+    loading: agentsLoading,
+    error: agentsError,
+    getRows: getAgentsData,
+  } = useAgents();
+
+  const {
+    data: propertiesData,
+    loading: propertiesLoading,
+    error: propertiesError,
+  } = useProperties();
+
+  const getClientsData = useClients();
+
   // State for fetched data
   const [clients, setClients] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [properties, setProperties] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
-
-  // Initialize hooks
-  const getClientsData = useClients();
-  const getAgentsData = useAgents();
-  const {
-    data: propertiesData,
-    loading: propertiesLoading,
-    error: propertiesError,
-  } = useProperties();
 
   // Fetch clients and agents data
   useEffect(() => {
@@ -82,13 +89,8 @@ export default function AddAppointmentForm() {
         setDataLoading(true);
         setDataError(null);
 
-        // Fetch clients and agents in parallel
-        const [clientsResult, agentsResult] = await Promise.all([
-          getClientsData(signal),
-          role === "admin"
-            ? getAgentsData(signal)
-            : Promise.resolve({ rows: [] }),
-        ]);
+        // Fetch clients data
+        const clientsResult = await getClientsData(signal);
 
         if (signal.aborted) return;
 
@@ -98,13 +100,14 @@ export default function AddAppointmentForm() {
         }
         setClients(clientsResult.rows || []);
 
-        // Set agents data (only for admin)
+        // Set agents data from useAgents hook (only for admin)
         if (role === "admin") {
-          if (agentsResult.error) {
-            throw new Error(agentsResult.error.message);
-          }
-          setAgents(agentsResult.rows || []);
+          // Use the agents data directly from the hook
+          setAgents(agentsData || []);
         }
+
+        // Set properties data
+        setProperties(propertiesData || []);
 
         setDataLoading(false);
       } catch (error) {
@@ -123,7 +126,7 @@ export default function AddAppointmentForm() {
     return () => {
       controller.abort();
     };
-  }, [getClientsData, getAgentsData, role]);
+  }, [getClientsData, agentsData, propertiesData, role]);
 
   const {
     handleSubmit,
@@ -152,13 +155,19 @@ export default function AddAppointmentForm() {
         position: "top-center",
       });
     }
+    if (agentsError) {
+      toast.error("فشل في تحميل بيانات الوكلاء", {
+        duration: 5000,
+        position: "top-center",
+      });
+    }
     if (propertiesError) {
       toast.error("فشل في تحميل بيانات العقارات", {
         duration: 5000,
         position: "top-center",
       });
     }
-  }, [dataError, propertiesError]);
+  }, [dataError, agentsError, propertiesError]);
 
   const onSubmit = async (data: FormValues) => {
     setLoading(true);
@@ -248,16 +257,22 @@ export default function AddAppointmentForm() {
     router.back();
   };
 
-  // Format users for UserChanger component
+  // Format users for UserChanger component - Updated to match AgentRow structure
   const formatUsers = (users: any[]) => {
     return (
-      users?.map((user) => ({
-        id: parseInt(user.id), // Convert string ID to number
-        name: user.name || user.fullName || "غير معروف",
-        email: user.email,
-        phone: user.phone,
-        avatar: user.profilePhoto || user.profilePhotoUrl,
-      })) || []
+      users?.map((user) => {
+        // Handle both agent structure and client structure
+        const userData = user.user || user; // Support nested user object for agents
+
+        return {
+          id: parseInt(userData.id || user.id), // Convert string ID to number
+          name: userData.fullName || userData.name || user.name || "غير معروف",
+          email: userData.email || user.email,
+          phone: userData.phoneNumber || userData.phone || user.phone,
+          avatar:
+            userData.profilePhoto || userData.profilePhotoUrl || user.avatar,
+        };
+      }) || []
     );
   };
 
@@ -279,7 +294,7 @@ export default function AddAppointmentForm() {
     );
   };
 
-  const isLoading = dataLoading || propertiesLoading;
+  const isLoading = dataLoading || agentsLoading || propertiesLoading;
   const hasData =
     clients.length > 0 &&
     properties.length > 0 &&
@@ -293,10 +308,11 @@ export default function AddAppointmentForm() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             <span className="mr-3">جاري تحميل البيانات...</span>
           </div>
-        ) : dataError || propertiesError ? (
+        ) : dataError || agentsError || propertiesError ? (
           <div className="text-center py-12 text-red-600">
             <p>
               {dataError ||
+                agentsError?.message ||
                 propertiesError?.message ||
                 "فشل في تحميل البيانات المطلوبة"}
             </p>
@@ -367,7 +383,7 @@ export default function AddAppointmentForm() {
                   users={formatUsers(agents)}
                   label="وسيط"
                   onChange={(agent) => setValue("agentId", agent?.id)}
-                  loading={dataLoading}
+                  loading={agentsLoading}
                 />
                 <FieldErrorMessage errors={errors} fieldName="agentId" />
               </div>
@@ -390,7 +406,7 @@ export default function AddAppointmentForm() {
             <div className="col-span-12 md:col-span-6">
               <label className="text-lg font-medium block mb-3">العقار</label>
               <PropertyChanger
-                properties={formatProperties(propertiesData)}
+                properties={formatProperties(properties)}
                 label="عقار"
                 onChange={(property) => setValue("propertyId", property?.id)}
                 loading={propertiesLoading}
@@ -428,7 +444,7 @@ export default function AddAppointmentForm() {
                           customerNotes: watch("customerNotes"),
                           clientsCount: clients.length,
                           agentsCount: agents.length,
-                          propertiesCount: propertiesData.length,
+                          propertiesCount: properties.length,
                         },
                         null,
                         2

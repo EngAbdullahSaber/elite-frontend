@@ -1,6 +1,5 @@
 "use client";
 import DashboardHeaderTitle from "@/components/dashboard/DashboardHeaderTitle";
-import DownloadList from "@/components/shared/DownloadContent";
 import Link from "next/link";
 import { BiEditAlt } from "react-icons/bi";
 import ClientsDataView from "@/components/dashboard/Clients/ClientsDataView";
@@ -21,11 +20,11 @@ export default function ClientsPage() {
     <div>
       <DashboardHeaderTitle path={["العملاء"]}>
         <div className="flex gap-4 flex-wrap">
-          <StandaloneDownloadContent
+          {/* <StandaloneDownloadContent
             module="user"
             currentData={currentData}
             filters={currentFilters}
-          />{" "}
+          />{" "} */}
           <Link className="btn-primary" href="/dashboard/admin/clients/add">
             <BiEditAlt /> إضافة عميل{" "}
           </Link>

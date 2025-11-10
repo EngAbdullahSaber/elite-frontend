@@ -78,7 +78,7 @@ export async function Login(data: LoginData) {
 
 export async function SendOtp(data: Omit<OtpData, "otp">) {
   try {
-    const res = await api.post(`/auth/send-otp`, data);
+    const res = await api.post(`/auth/login/send-otp`, data);
     return res.data;
   } catch (error) {
     console.error("Send OTP error:", error);

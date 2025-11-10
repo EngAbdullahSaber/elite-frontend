@@ -9,14 +9,28 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    // Add production-safe domains only
-    domains: ["elite-back-end.vercel.app", "example.com"],
-
-    // Define remote image patterns allowed in <Image />
+    domains: [
+      "elite-back-end.vercel.app",
+      "example.com",
+      "localhost", // ✅ add this
+      "127.0.0.1", // ✅ add this too (for safety)
+    ],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "elite-back-end.vercel.app",
+        pathname: "/uploads/images/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8081", // ✅ must be separated from hostname
+        pathname: "/uploads/images/**",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "8081",
         pathname: "/uploads/images/**",
       },
       {
