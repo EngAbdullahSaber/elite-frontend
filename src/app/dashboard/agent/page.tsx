@@ -1,41 +1,160 @@
+"use client";
+import { useEffect, useState } from "react";
 import DashboardHeaderTitle from "@/components/dashboard/DashboardHeaderTitle";
 import { TwoLineChart } from "@/components/shared/charts/TwoLineChart";
 import Card from "@/components/shared/Card";
 import AgentAppointmentStatusCards from "@/components/dashboard/agentRole/Schedule/charts/AgentAppointmentStatusCards";
-import AverageRatingsCard, {
-  defaultRatings,
-} from "@/components/dashboard/admin/AverageRatingsCard";
-import NotificationsCard, {
-  agetnDefaultNotifications,
-} from "@/components/dashboard/admin/NotificationsCard";
+
+import NotificationsCard from "@/components/dashboard/admin/NotificationsCard";
 import AgentStatsCard from "@/components/dashboard/agentRole/Schedule/charts/AgentStatsCard";
+import { getAgentDashboard } from "@/services/dashboard/agentDashboard";
+
+// Define types based on your API response
+interface AgentDashboardResponse {
+  stats: {
+    totalAppointments: number;
+    totalEarnings: number;
+    pendingBalance: number;
+    averageRating: number;
+  };
+  recentPayments: any[];
+  recentReviews: any[];
+  recentAppointments: any[];
+}
 
 export default function AgentDashboardPage() {
-  // هذه القيم ستأتي من API في الواقع
-  const stats = {
-    upcoming: 5, // مواعيد قادمة
-    today: 2, // مواعيد اليوم
-    earningsThisMonth: 1200, // أرباح هذا الشهر
-    rating: 4.7, // متوسط التقييم
+  const [dashboardData, setDashboardData] =
+    useState<AgentDashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getAgentDashboard();
+        setDashboardData(data);
+      } catch (err) {
+        console.error("Error fetching agent dashboard:", err);
+        setError("فشل في تحميل بيانات لوحة التحكم");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Transform API data to match component props
+  const transformStats = (stats: AgentDashboardResponse["stats"]) => ({
+    totalAppointments: stats.totalAppointments,
+    pendingBalance: stats.pendingBalance,
+    totalEarnings: stats.totalEarnings,
+    rating: stats.averageRating,
+  });
+
+  // Calculate appointment status data from recent appointments
+  const calculateStatusData = (appointments: any[]) => {
+    const statusCounts = {
+      confirmed: 0,
+      inProgress: 0,
+      completed: 0,
+      cancelled: 0,
+    };
+
+    appointments?.forEach((appointment) => {
+      switch (appointment.status) {
+        case "confirmed":
+          statusCounts.confirmed++;
+          break;
+        case "in_progress":
+        case "inProgress":
+          statusCounts.inProgress++;
+          break;
+        case "completed":
+          statusCounts.completed++;
+          break;
+        case "cancelled":
+          statusCounts.cancelled++;
+          break;
+        default:
+          break;
+      }
+    });
+
+    return statusCounts;
   };
 
-  const statusData = {
-    confirmed: 15,
-    inProgress: 8,
-    completed: 20,
-    cancelled: 3,
+  // Calculate chart data from recent appointments
+  const calculateChartData = (appointments: any[]) => {
+    // Get last 6 months
+    const months = ["يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+
+    // Initialize data arrays
+    const completedData = new Array(6).fill(0);
+    const incompleteData = new Array(6).fill(0);
+
+    appointments?.forEach((appointment) => {
+      const appointmentDate = new Date(appointment.appointmentDate);
+      const currentDate = new Date();
+
+      // Calculate month difference
+      const monthDiff =
+        (currentDate.getFullYear() - appointmentDate.getFullYear()) * 12 +
+        (currentDate.getMonth() - appointmentDate.getMonth());
+
+      // Only consider appointments from last 6 months
+      if (monthDiff >= 0 && monthDiff < 6) {
+        const monthIndex = 5 - monthDiff; // Reverse index to show oldest first
+
+        if (appointment.status === "completed") {
+          completedData[monthIndex]++;
+        } else if (
+          ["cancelled", "pending", "in_progress"].includes(appointment.status)
+        ) {
+          incompleteData[monthIndex]++;
+        }
+      }
+    });
+
+    return {
+      labels: months,
+      completedData,
+      incompleteData,
+    };
   };
 
-  const chartLabels = [
-    "يوليو",
-    "أغسطس",
-    "سبتمبر",
-    "أكتوبر",
-    "نوفمبر",
-    "ديسمبر",
-  ];
-  const completedData = [5, 8, 12, 10, 15, 20];
-  const incompleteData = [2, 1, 3, 4, 2, 5];
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="text-lg">جاري التحميل...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="text-lg text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="text-lg">لا توجد بيانات متاحة</div>
+      </div>
+    );
+  }
+
+  const statusData = calculateStatusData(dashboardData.recentAppointments);
+  const stats = transformStats(dashboardData.stats);
+  const chartData = calculateChartData(dashboardData.recentAppointments);
+
+  console.log("Dashboard Data:", dashboardData);
+  console.log("Chart Data:", chartData);
 
   return (
     <>
@@ -44,22 +163,20 @@ export default function AgentDashboardPage() {
         {/* 1. إحصائيات سريعة */}
         <AgentStatsCard stats={stats} />
 
-        {/* 2. حالة المواعيد (بدون pending, assigned) */}
+        {/* 2. حالة المواعيد */}
         <AgentAppointmentStatusCards data={statusData} />
 
         {/* 3. تحليل المواعيد (آخر 6 أشهر) */}
-
-        {/* 4. متوسط التقييمات */}
         <div className="flex flex-col xl:flex-row gap-4 xl:gap-6">
           <Card
             title="تحليل المواعيد"
             subTitle="آخر 6 أشهر"
-            className="xl:w-[calc(50%-12px)]"
+            className="xl:w-[calc(100%-12px)]"
           >
             <TwoLineChart
-              labels={chartLabels}
-              data1={completedData}
-              data2={incompleteData}
+              labels={chartData.labels}
+              data1={chartData.completedData}
+              data2={chartData.incompleteData}
               tooltiTitle="المواعيد"
               data1Label="مكتملة"
               data2Label="غير مكتملة"
@@ -75,17 +192,11 @@ export default function AgentDashboardPage() {
               }}
             />
           </Card>
-          <Card
-            title="متوسط التقييم"
-            subTitle="حسب تقييم العملاء"
-            className="xl:w-[calc(50%-12px)]"
-          >
-            <AverageRatingsCard ratings={defaultRatings} />
-          </Card>
         </div>
+
         {/* 5. إشعارات الوسيط */}
         <Card title="الإشعارات" subTitle="أخر التحديثات">
-          <NotificationsCard notifications={agetnDefaultNotifications} />
+          <NotificationsCard notifications={""} />
         </Card>
       </div>
     </>

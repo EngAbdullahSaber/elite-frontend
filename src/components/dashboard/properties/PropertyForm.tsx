@@ -31,9 +31,13 @@ export type PropertyFormValues = {
   warranties: Record<string, PropertyDetail>;
   ownerName: string;
   ownerPhone: string;
+  ownerNotes?: string;
   images: FileItem[];
   video: string;
   address: string;
+  latitude?: string;
+  longitude?: string;
+  mapPlaceId?: string;
   // Add these new fields to match API
   cityId?: number;
   areaId?: number;
@@ -63,9 +67,13 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
       warranties: {},
       ownerName: "",
       ownerPhone: "",
+      ownerNotes: "",
       images: [],
       video: "",
       address: "",
+      latitude: "",
+      longitude: "",
+      mapPlaceId: "",
     },
   });
 
@@ -109,19 +117,24 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     return {
       title: formData.title,
       description: formData.description,
-      propertyTypeId: formData.propertyTypeId || 1, // You'll need to map this
-      cityId: formData.cityId || 1, // You'll need to get this from location section
-      areaId: formData.areaId || 1, // You'll need to get this from location section
+      propertyTypeId: formData.propertyTypeId || 1,
+      cityId: formData.cityId || 1,
+      areaId: formData.areaId || 1,
       bedrooms: Number(formData.rooms),
       bathrooms: Number(formData.bathrooms),
       areaM2: formData.area.toString(),
       price: formData.price.toString(),
-      specifications,
-      guarantees,
+      specifications: JSON.stringify(specifications),
+      guarantees: JSON.stringify(guarantees),
       accessType: formData.accessType,
       ownerName: formData.ownerName,
       ownerPhone: formData.ownerPhone,
-      // Add optional fields if they exist
+      ownerNotes: formData.ownerNotes || "",
+      latitude: formData.latitude || "",
+      longitude: formData.longitude || "",
+      mapPlaceId: formData.mapPlaceId || "",
+      // Extract actual File objects from FileItem array
+      media: formData.images.map((fileItem) => fileItem.file).filter(Boolean),
     };
   };
 
@@ -130,13 +143,51 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     try {
       const apiData = transformFormDataToAPI(data);
 
+      // Create FormData object
+      const formData = new FormData();
+
+      // Append all text fields
+      formData.append("title", apiData.title);
+      formData.append("description", apiData.description);
+      formData.append("propertyTypeId", apiData.propertyTypeId.toString());
+      formData.append("cityId", apiData.cityId.toString());
+      formData.append("areaId", apiData.areaId.toString());
+      formData.append("bedrooms", apiData.bedrooms.toString());
+      formData.append("bathrooms", apiData.bathrooms.toString());
+      formData.append("areaM2", apiData.areaM2);
+      formData.append("price", apiData.price);
+      formData.append("specifications", apiData.specifications);
+      formData.append("guarantees", apiData.guarantees);
+      formData.append("accessType", apiData.accessType);
+      formData.append("ownerName", apiData.ownerName);
+      formData.append("ownerPhone", apiData.ownerPhone);
+
+      // Append optional fields if they exist
+      if (apiData.ownerNotes) {
+        formData.append("ownerNotes", apiData.ownerNotes);
+      }
+      if (apiData.latitude) {
+        formData.append("latitude", apiData.latitude);
+      }
+      if (apiData.longitude) {
+        formData.append("longitude", apiData.longitude);
+      }
+      if (apiData.mapPlaceId) {
+        formData.append("mapPlaceId", apiData.mapPlaceId);
+      }
+
+      // Append each media file
+      apiData.media.forEach((file) => {
+        formData.append("media", file);
+      });
+
       if (initialData) {
-        // Update property logic
-        console.log("Updating property...", apiData);
-        // await updateProperty(propertyId, apiData);
+        // Update property logic with formData
+        console.log("Updating property...", formData);
+        // await updateProperty(propertyId, formData);
       } else {
-        // Create new property
-        const response = await createProperty(apiData);
+        // Create new property with formData
+        const response = await createProperty(formData);
         console.log("Property created successfully:", response);
 
         // Redirect to properties list or show success message

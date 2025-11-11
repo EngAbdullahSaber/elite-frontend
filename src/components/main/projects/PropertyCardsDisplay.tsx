@@ -51,7 +51,7 @@ export default function PropertyCardsDisplay({
             key={property.id}
             href={
               isAdmin
-                ? `/dashboard/admin/properties/${property.id}`
+                ? `/dashboard/admin/properties/edit/${property.id}`
                 : `/projects/${property.id}`
             }
             className="block group"

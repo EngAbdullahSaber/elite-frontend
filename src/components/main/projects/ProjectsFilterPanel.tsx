@@ -157,11 +157,13 @@ export default function ProjectsFilterPanel({
   };
 
   const handleReset = () => {
+    // Create empty URLSearchParams to remove all query parameters
     const params = new URLSearchParams();
 
-    // Keep only essential parameters if needed
+    // Navigate to the base URL without any query parameters
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
 
+    // Reset all filters to their default values
     setFilters({
       search: "",
       type: "",
@@ -256,7 +258,12 @@ export default function ProjectsFilterPanel({
 
       <div className="border-t border-dashed my-6" />
 
-      <ResetFiltersButton onClick={handleReset} />
+      {/* Only show the bottom reset button if there are active filters */}
+      {hasActiveFilters() && (
+        <div className="mt-4">
+          <ResetFiltersButton onClick={handleReset} />
+        </div>
+      )}
     </div>
   );
 }

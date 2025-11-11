@@ -292,7 +292,9 @@ export async function createProperty(
 ): Promise<Property> {
   try {
     const response = await api.post("/properties", data, {
-      signal,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     return response.data.data || response.data;

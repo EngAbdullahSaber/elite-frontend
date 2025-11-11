@@ -103,7 +103,7 @@ export default function BecomeAgentForm() {
       if (data.identity_proof.length > 0) {
         const identityFile = data.identity_proof[0].file;
         if (identityFile) {
-          formData.append("identityProofUrl", identityFile);
+          formData.append("identityProof", identityFile);
         }
       }
 
@@ -111,7 +111,7 @@ export default function BecomeAgentForm() {
       if (data.license_document.length > 0) {
         const licenseFile = data.license_document[0].file;
         if (licenseFile) {
-          formData.append("residencyDocumentUrl", licenseFile);
+          formData.append("residencyDocument", licenseFile);
         }
       }
 

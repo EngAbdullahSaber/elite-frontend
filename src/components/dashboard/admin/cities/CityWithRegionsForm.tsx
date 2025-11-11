@@ -363,10 +363,6 @@ export default function CityWithRegionsForm({
   };
 
   const handleDeleteRegion = async (cityId: number, regionId: number) => {
-    if (!confirm("هل أنت متأكد من حذف هذه المنطقة؟")) {
-      return;
-    }
-
     setDeletingItem({ type: "region", id: regionId });
     try {
       await deleteRegion(regionId);
