@@ -239,7 +239,7 @@ export default function PartnerForm({
   };
 
   const handleViewPartners = () => {
-    router.push("/dashboard/admin/partners");
+    router.push("/dashboard/admin/marketers");
     router.refresh();
   };
 

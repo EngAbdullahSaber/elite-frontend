@@ -9,6 +9,7 @@ import PrimaryButton from "../Button";
 import FallbackImage from "../FallbackImage";
 import { useEffect, useState } from "react";
 import LogoutButton from "../LogoutButton";
+import { ImageBaseUrl } from "@/libs/app.config";
 
 export default function HeaderActions() {
   const pathname = usePathname();
@@ -144,7 +145,11 @@ export default function HeaderActions() {
               >
                 <FallbackImage
                   alt="profile"
-                  src={userInfo?.profilePhotoUrl || "/users/default-user.png"}
+                  src={
+                    userInfo?.profilePhotoUrl
+                      ? ImageBaseUrl + userInfo?.profilePhotoUrl
+                      : "/users/default-user.png"
+                  }
                   width={44}
                   height={44}
                   className="rounded-full"
@@ -164,8 +169,9 @@ export default function HeaderActions() {
                 name: userInfo?.fullName || "User",
                 email: userInfo?.email || "",
                 location: userInfo?.location || "",
-                avatarUrl:
-                  userInfo?.profilePhotoUrl || "/users/default-user.png",
+                avatarUrl: userInfo?.profilePhotoUrl
+                  ? ImageBaseUrl + userInfo?.profilePhotoUrl
+                  : "/users/default-user.png",
                 userType: userInfo?.userType || "customer",
               }}
               onLogout={handleLogout}

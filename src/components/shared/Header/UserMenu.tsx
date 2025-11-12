@@ -18,6 +18,7 @@ export default function UserMenu({ user, onLogout, onClose }: Props) {
     onLogout?.();
     onClose?.();
   }
+  console.log(user.avatarUrl);
   return (
     <>
       <div className="flex gap-3 pb-3 items-center border-b border-dashed">

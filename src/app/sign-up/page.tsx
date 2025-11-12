@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { Register, VerifyOtp } from "@/services/Auth/auth";
 import toast from "react-hot-toast";
 import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { CreateCoversions } from "@/services/trackingService/trackingService";
 
 type FormData = {
   fullName: string;
@@ -170,7 +171,7 @@ export default function SignUpPage() {
         otp: otp,
       };
 
-      await VerifyOtp(otpData);
+      const response = await VerifyOtp(otpData);
 
       toast.success("تم تفعيل الحساب بنجاح!", {
         duration: 5000,
@@ -183,8 +184,11 @@ export default function SignUpPage() {
           fontSize: "14px",
         },
       });
-
-      // Redirect to login page after successful verification
+      await CreateCoversions({
+        userId: response.id,
+        type: "registration",
+        visitorId: Number(localStorage.getItem("visitor_id")),
+      });
       setTimeout(() => {
         window.location.href = "/sign-in";
       }, 2000);

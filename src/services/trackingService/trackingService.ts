@@ -1,5 +1,6 @@
 // services/trackingService.ts
 
+import { api } from "@/libs/axios";
 import { TrackingResponse } from "@/libs/urlParams";
 
 export async function trackTraffic(data: {
@@ -9,22 +10,25 @@ export async function trackTraffic(data: {
   campaignId?: number;
 }): Promise<TrackingResponse> {
   try {
-    const response = await fetch("/api/traffic/track", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await api.post("/traffic/track", data);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result: TrackingResponse = await response.json();
-    return result;
+    return response.data.data || response.data;
   } catch (error) {
-    console.error("Error tracking traffic:", error);
+    console.error("Error creating partner:", error);
+    throw error;
+  }
+}
+export async function CreateCoversions(data: {
+  userId: string;
+  type?: string;
+  visitorId?: number;
+}): Promise<TrackingResponse> {
+  try {
+    const response = await api.post("/traffic/conversions", data);
+
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error("Error creating partner:", error);
     throw error;
   }
 }

@@ -19,6 +19,7 @@ import {
 } from "@/services/propertySubmissions/propertySubmissions";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { ImageBaseUrl } from "@/libs/app.config";
 
 export type PropertyRequestFormValues = {
   requesterName: string;
@@ -29,6 +30,7 @@ export type PropertyRequestFormValues = {
   location: { lat: number; lng: number };
   specifications: Record<string, { name: string; value: string | string[] }>;
   authorizationDoc?: FileItem;
+  ownershipDoc?: FileItem;
 };
 
 type PropertyRequestFormProps = {
@@ -42,6 +44,7 @@ const propertyTypeToId: Record<PropertyType, number> = {
   apartment: 1,
   villa: 2,
   land: 3,
+  home: 4,
   office: 4,
 };
 
@@ -59,7 +62,8 @@ const idToPropertyType: Record<number, PropertyType> = {
   1: "apartment",
   2: "villa",
   3: "land",
-  4: "office",
+  4: "home",
+  5: "office",
 };
 
 const relationshipTypeReverseMap: Record<
@@ -67,7 +71,7 @@ const relationshipTypeReverseMap: Record<
   "owner" | "authorized_representative"
 > = {
   owner: "owner",
-  authorized: "authorized_representative",
+  authorized_representative: "authorized_representative",
 };
 
 export default function PropertyRequestForm({
@@ -93,6 +97,7 @@ export default function PropertyRequestForm({
         location: { lat: 21.2854, lng: 39.2376 },
         specifications: {},
         authorizationDoc: undefined,
+        ownershipDoc: undefined,
         ...defaultValues,
       },
     });
@@ -149,20 +154,7 @@ export default function PropertyRequestForm({
 
     // Extract specifications from the dynamic object
     const extractSpecifications = (specs: any) => {
-      const specifications: any = {
-        bedrooms: {
-          name: "عدد الغرف",
-          value: "0",
-        },
-        bathrooms: {
-          name: "عدد الحمامات",
-          value: "0",
-        },
-        area: {
-          name: "المساحة",
-          value: "0",
-        },
-      };
+      const specifications: any = {};
 
       if (!specs) return specifications;
 
@@ -194,43 +186,60 @@ export default function PropertyRequestForm({
       return specifications;
     };
 
-    // Map relationship type
-    const relationshipTypeMap: Record<string, string> = {
-      owner: "owner",
-      authorized_representative: "authorized_representative",
-    };
-
-    // Map property type ID to string value
-    const idToPropertyType: Record<number, string> = {
-      1: "apartment", // شقة
-      2: "villa", // فيلا
-      3: "land", // أرض
-      4: "office", // مكتب
-      // Add more mappings as needed
-    };
-
     return {
       requesterName: apiData.owner?.fullName || "",
       relationshipType:
-        relationshipTypeMap[apiData.relationshipType] || "owner",
+        relationshipTypeReverseMap[apiData.relationshipType] || "owner",
       askedPrice: parseFloat(apiData.askingPrice) || 0,
       propertyType: idToPropertyType[apiData.propertyType?.id] || "apartment",
       location: parseLocation(apiData.location),
       specifications: extractSpecifications(apiData.specifications),
       attachments:
         apiData.attachments?.map((attachment: any) => ({
-          url: attachment.url || attachment.attachmentUrl,
+          url:
+            ImageBaseUrl + attachment.url ||
+            ImageBaseUrl + attachment.attachmentUrl,
           name: attachment.name || `مرفق_${attachment.id}`,
           type: attachment.type || "application/octet-stream",
+          file: attachment.file, // Keep file reference if exists
         })) || [],
       authorizationDoc: apiData.authorizationDocUrl
         ? {
-            url: apiData.authorizationDocUrl,
+            url: ImageBaseUrl + apiData.authorizationDocUrl,
             name: "وثيقة_التفويض",
             type: "application/pdf",
           }
         : undefined,
+      ownershipDoc: apiData.ownershipDocUrl
+        ? {
+            url: ImageBaseUrl + apiData.ownershipDocUrl,
+            name: "وثيقة_الملكية",
+            type: "application/pdf",
+          }
+        : undefined,
     };
+  };
+
+  // Helper function to convert FileItem to File object
+  const getFileFromFileItem = async (fileItem: FileItem): Promise<File> => {
+    if (fileItem.file) {
+      return fileItem.file;
+    }
+
+    if (fileItem.url) {
+      try {
+        const response = await fetch(fileItem.url);
+        const blob = await response.blob();
+        return new File([blob], fileItem.name || "file", {
+          type: fileItem.type,
+        });
+      } catch (error) {
+        console.error("Error converting URL to File:", error);
+        throw new Error(`Failed to convert ${fileItem.name} to File object`);
+      }
+    }
+
+    throw new Error("No file or URL available in FileItem");
   };
 
   const onSubmit = async (data: PropertyRequestFormValues) => {
@@ -266,34 +275,75 @@ export default function PropertyRequestForm({
       // Convert location object to string
       const locationString = `Lat: ${data.location.lat}, Lng: ${data.location.lng}`;
 
-      // Prepare attachments array
-      const attachments = data.attachments
-        .map((file) => ({
-          attachmentUrl: file.url || file.previewUrl || "",
-        }))
-        .filter((attachment) => attachment.attachmentUrl);
+      // Create FormData object
+      const formData = new FormData();
 
-      // Prepare authorization document URL
-      const authorizationDocUrl =
-        data.authorizationDoc?.url ||
-        data.authorizationDoc?.previewUrl ||
-        undefined;
+      // Add basic fields
+      formData.append(
+        "relationshipType",
+        relationshipTypeMap[data.relationshipType]
+      );
+      formData.append(
+        "propertyTypeId",
+        propertyTypeToId[data.propertyType].toString()
+      );
+      formData.append("location", locationString);
+      formData.append("specifications", JSON.stringify(specifications));
+      formData.append("askingPrice", data.askedPrice.toString());
 
-      const submissionData = {
-        location: locationString,
-        specifications: specifications,
-        askingPrice: data.askedPrice.toString(),
-        authorizationDocUrl: authorizationDocUrl,
-      };
+      // Add ownerId for create operation
+      if (!isEdit && ownerId) {
+        formData.append("ownerId", ownerId.toString());
+      }
+
+      // Add attachments
+      for (const attachment of data.attachments) {
+        try {
+          const file = await getFileFromFileItem(attachment);
+          formData.append("attachments", file);
+        } catch (error) {
+          console.warn("Skipping attachment due to error:", error);
+        }
+      }
+
+      // Add authorization document if exists
+      if (data.authorizationDoc) {
+        try {
+          const authFile = await getFileFromFileItem(data.authorizationDoc);
+          formData.append("authorizationDoc", authFile);
+        } catch (error) {
+          console.warn("Skipping authorization document due to error:", error);
+        }
+      }
+
+      // Add ownership document if exists
+      if (data.ownershipDoc) {
+        try {
+          const ownershipFile = await getFileFromFileItem(data.ownershipDoc);
+          formData.append("ownershipDoc", ownershipFile);
+        } catch (error) {
+          console.warn("Skipping ownership document due to error:", error);
+        }
+      }
 
       console.log(
-        `${isEdit ? "🔄 Updating" : "🆕 Creating"} property submission:`,
-        submissionData
+        `${
+          isEdit ? "🔄 Updating" : "🆕 Creating"
+        } property submission with FormData`
       );
+
+      // Log FormData contents for debugging
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`📎 ${key}:`, value.name, value.type, value.size);
+        } else {
+          console.log(`📝 ${key}:`, value);
+        }
+      }
 
       let result;
       if (isEdit && requestId) {
-        result = await updatePropertySubmission(requestId, submissionData);
+        result = await updatePropertySubmission(requestId, formData);
         console.log("✅ Property submission updated successfully:", result);
 
         // Show success toast for update
@@ -314,16 +364,7 @@ export default function PropertyRequestForm({
           router.back();
         }, 2000);
       } else {
-        const CreatesubmissionData = {
-          location: locationString,
-          ownerId: ownerId,
-          relationshipType: relationshipTypeMap[data.relationshipType],
-          propertyTypeId: propertyTypeToId[data.propertyType],
-          specifications: specifications,
-          askingPrice: data.askedPrice.toString(),
-          authorizationDocUrl: authorizationDocUrl,
-        };
-        result = await createPropertySubmission(CreatesubmissionData);
+        result = await createPropertySubmission(formData);
         console.log("✅ Property submission created successfully:", result);
 
         // Show success toast for create
@@ -445,6 +486,18 @@ export default function PropertyRequestForm({
         />
       </Card>
 
+      <Card title="وثيقة الملكية (إن وجدت)">
+        <Uploader
+          control={control}
+          name="ownershipDoc"
+          accept=".pdf,.doc,.docx,image/*"
+          label="وثيقة الملكية"
+          allowMultiple={false}
+          allowPrimary={false}
+          rules={["الحد الأقصى لحجم الملف 9MB", "PDF، مستندات Word، صور"]}
+        />
+      </Card>
+
       {/* Debug information (remove in production) */}
       {process.env.NODE_ENV === "development" && (
         <Card title="بيانات الإرسال (للتطوير)">
@@ -462,6 +515,7 @@ export default function PropertyRequestForm({
                   askingPrice: currentValues.askedPrice,
                   attachmentsCount: currentValues.attachments.length,
                   hasAuthorizationDoc: !!currentValues.authorizationDoc,
+                  hasOwnershipDoc: !!currentValues.ownershipDoc,
                 },
                 null,
                 2

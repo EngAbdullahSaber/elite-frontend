@@ -16,16 +16,15 @@ interface FavoriteRecord {
     id: number;
     fullName: string;
     email: string;
-    // ... other user fields
   };
   property: Property;
 }
 
 interface FavoritesResponse {
-  total_records: number;
-  current_page: number;
-  per_page: number;
-  records: FavoriteRecord[];
+  total: number;
+  page: number;
+  limit: number;
+  data: FavoriteRecord[];
 }
 
 export default function FavoritesPage() {
@@ -36,37 +35,95 @@ export default function FavoritesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalFavorites, setTotalFavorites] = useState(0);
 
-  const itemsPerPage = 8; // Match your max prop
+  const itemsPerPage = 8;
 
   useEffect(() => {
     fetchFavorites();
-  }, [currentPage]); // Refetch when page changes
+  }, [currentPage]);
 
   const fetchFavorites = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response: FavoritesResponse = await getFavorites({
+      console.log(
+        `Fetching favorites - Page: ${currentPage}, Limit: ${itemsPerPage}`
+      );
+
+      const response = await getFavorites({
         page: currentPage,
         limit: itemsPerPage,
         sortBy: "createdAt",
         sortOrder: "DESC",
       });
 
-      console.log("Favorites API Response:", response); // Debug log
+      console.log("Favorites API Response:", response);
+
+      // Handle different response structures
+      let favoritesData: FavoriteRecord[] = [];
+      let totalCount = 0;
+
+      if (response && typeof response === "object") {
+        // Your API response structure
+        if ("data" in response && Array.isArray(response.data)) {
+          favoritesData = response.data;
+          totalCount = response.total || 0;
+        }
+        // Fallback for different structure
+        else if ("records" in response && Array.isArray(response.records)) {
+          favoritesData = response.records;
+          totalCount = response.total_records || response.total || 0;
+        }
+      }
+
+      console.log("Processed favorites data:", favoritesData);
 
       // Extract properties from favorites
-      const favoriteProperties = response.records.map(
-        (record) => record.property
-      );
+      const favoriteProperties = favoritesData.map((record) => {
+        // Ensure property has all required fields
+        const property = record.property || {};
+        return {
+          id: property.id || record.id,
+          title: property.title || "بدون عنوان",
+          description: property.description || "",
+          price: property.price || "0",
+          bedrooms: property.bedrooms || 0,
+          bathrooms: property.bathrooms || 0,
+          areaM2: property.areaM2 || "0",
+          propertyType: property.propertyType || { name: "غير محدد" },
+          city: property.city || { name: "غير محدد" },
+          area: property.area,
+          specifications: property.specifications || {},
+          guarantees: property.guarantees || {},
+          medias: property.medias || [],
+          accessType: property.accessType || "mediated",
+          isActive: property.isActive !== undefined ? property.isActive : true,
+          createdAt: property.createdAt || record.createdAt,
+          updatedAt: property.updatedAt || record.updatedAt,
+          ...property,
+        };
+      });
 
       setFavorites(favoriteProperties);
-      setTotalPages(Math.ceil(response.total_records / response.per_page));
-      setTotalFavorites(response.total_records);
-    } catch (err) {
+      setTotalFavorites(totalCount);
+
+      // Calculate total pages
+      const calculatedTotalPages = Math.ceil(totalCount / itemsPerPage);
+      setTotalPages(calculatedTotalPages > 0 ? calculatedTotalPages : 1);
+    } catch (err: any) {
       console.error("Error fetching favorites:", err);
-      setError("فشل في تحميل العقارات المفضلة");
+
+      let errorMessage = "فشل في تحميل العقارات المفضلة";
+
+      if (err.response?.status === 401) {
+        errorMessage = "يجب تسجيل الدخول لعرض المفضلة";
+      } else if (err.response?.status === 404) {
+        errorMessage = "لم يتم العثور على أي عقارات مفضلة";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -74,7 +131,6 @@ export default function FavoritesPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Optional: Scroll to top when page changes
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -172,7 +228,7 @@ export default function FavoritesPage() {
               وأضف المفضلة لديك.
             </p>
             <a
-              href="/properties"
+              href="/projects"
               className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors inline-block"
             >
               استكشاف العقارات
@@ -190,6 +246,7 @@ export default function FavoritesPage() {
           <h2 className="h2 mt-4">المشاريع المفضلة</h2>
           <div className="text-gray-600 text-sm">
             عرض {favorites.length} من أصل {totalFavorites} عقار
+            {currentPage > 1 && ` - الصفحة ${currentPage} من ${totalPages}`}
           </div>
         </div>
 

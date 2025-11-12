@@ -133,7 +133,9 @@ export async function createPropertySubmission(
 ) {
   try {
     const response = await api.post("/property-listing-requests", data, {
-      signal,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     return response.data.data || response.data;
@@ -151,7 +153,9 @@ export async function updatePropertySubmission(
 ) {
   try {
     const response = await api.patch(`/property-listing-requests/${id}`, data, {
-      signal,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     return response.data.data || response.data;

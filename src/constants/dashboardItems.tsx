@@ -245,6 +245,11 @@ export const adminDashboardItems: SelectableItem[] = [
         href: "/dashboard/admin/pages/privacy",
       },
       {
+        label: "رسائل التواصل",
+        icon: MdOutlinePrivacyTip,
+        href: "/dashboard/admin/pages/contact-us",
+      },
+      {
         label: "الشروط والأحكام",
         icon: MdDescription,
         href: "/dashboard/admin/pages/terms",

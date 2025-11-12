@@ -8,6 +8,7 @@ import DashboardHeaderTitle from "@/components/dashboard/DashboardHeaderTitle";
 import PopertySubmissionDetails from "@/components/dashboard/admin/propertySubmissions/PopertySubmissionDetails";
 import { propertySubmissionFull } from "@/types/dashboard/property-submissions";
 import { getPropertySubmission } from "@/services/propertySubmissions/propertySubmissions";
+import { ImageBaseUrl } from "@/libs/app.config";
 
 interface Props {
   requestId: string;
@@ -15,7 +16,7 @@ interface Props {
 
 // Helper functions
 function getPropertyTypeFromApi(apiPropertyType: any): string {
-  if (!apiPropertyType) return "apartment";
+  if (!apiPropertyType) return "شقة";
 
   // If it's an object with name property
   if (typeof apiPropertyType === "object" && apiPropertyType.name) {
@@ -45,24 +46,33 @@ function mapApiStatusToComponentStatus(apiStatus: string): string {
 }
 
 function getFileExtension(url: string): string {
-  if (!url) return "pdf";
+  if (!url) return "png";
   const match = url.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
-  return match ? match[1] : "pdf";
+  return match ? match[1].toLowerCase() : "png";
 }
 
 function getMimeType(url: string): string {
-  const ext = getFileExtension(url).toLowerCase();
+  const ext = getFileExtension(url);
   const mimeTypes: Record<string, string> = {
     pdf: "application/pdf",
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
     png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
     doc: "application/msword",
     docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     dbf: "application/dbf",
   };
-  return mimeTypes[ext] || "application/octet-stream";
+  return mimeTypes[ext] || "image/png"; // Default to image/png since most attachments are images
+}
+
+function getFileNameFromUrl(url: string): string {
+  if (!url) return "file";
+  const filename = url.split("/").pop() || "file";
+  // Remove any hash or query parameters
+  return filename.split("?")[0];
 }
 
 // Transform API data to match your component's expected format
@@ -93,6 +103,47 @@ function transformApiDataToPropertySubmissionFull(
     }
   }
 
+  // Transform attachments - handle both old and new structure
+  const transformedAttachments = (apiData.attachments || []).map(
+    (attachment: any, index: number) => {
+      const attachmentUrl = attachment.attachmentUrl || attachment.url;
+      const fileName = getFileNameFromUrl(attachmentUrl);
+
+      return {
+        url: ImageBaseUrl + attachmentUrl,
+        name: fileName,
+        type: getMimeType(attachmentUrl),
+        isPrimary: index === 0,
+      };
+    }
+  );
+
+  // Transform authorization document
+  const transformedAuthorizationDoc = apiData.authorizationDocUrl
+    ? {
+        url: ImageBaseUrl + apiData.authorizationDocUrl,
+        name: getFileNameFromUrl(apiData.authorizationDocUrl),
+        type: getMimeType(apiData.authorizationDocUrl),
+        isPrimary: false,
+      }
+    : undefined;
+
+  // Transform ownership document
+  const transformedOwnershipDoc = apiData.ownershipDocUrl
+    ? {
+        url: ImageBaseUrl + apiData.ownershipDocUrl,
+        name: getFileNameFromUrl(apiData.ownershipDocUrl),
+        type: getMimeType(apiData.ownershipDocUrl),
+        isPrimary: false,
+      }
+    : undefined;
+
+  // Combine all documents (attachments + authorization + ownership)
+  const allAttachments = [
+    ...transformedAttachments,
+    ...(transformedOwnershipDoc ? [transformedOwnershipDoc] : []),
+  ];
+
   return {
     id: apiData.id.toString(),
     requesterName: apiData.owner?.fullName || "غير معروف",
@@ -105,28 +156,14 @@ function transformApiDataToPropertySubmissionFull(
     address: locationText,
     createdAt: apiData.createdAt,
     updatedAt: apiData.updatedAt,
-    attachments:
-      apiData.attachments?.map((attachment: any, index: number) => ({
-        url: attachment.url || attachment.attachmentUrl,
-        name: `مرفق_${index + 1}.${getFileExtension(
-          attachment.url || attachment.attachmentUrl
-        )}`,
-        type: getMimeType(attachment.url || attachment.attachmentUrl),
-        isPrimary: index === 0,
-      })) || [],
-    authorizationDoc: apiData.authorizationDocUrl
-      ? {
-          url: apiData.authorizationDocUrl,
-          name: "وثيقة_التفويض.pdf",
-          type: "application/pdf",
-          isPrimary: false,
-        }
-      : undefined,
+    attachments: allAttachments,
+    authorizationDoc: transformedAuthorizationDoc,
+    ownershipDoc: transformedOwnershipDoc,
     specifications: transformedSpecifications,
     location: apiData.location,
     askingPrice: apiData.askingPrice,
     owner: apiData.owner,
-    publishedProperty: undefined, // No published property in your sample data
+    publishedProperty: undefined,
   };
 }
 
@@ -145,10 +182,12 @@ export default function PropertySubmissionDetailsContainer({
         setError(null);
 
         const apiData = await getPropertySubmission(parseInt(requestId));
+        console.log("Raw API Data:", apiData);
 
         if (apiData) {
           const transformedData =
             transformApiDataToPropertySubmissionFull(apiData);
+          console.log("Transformed Data:", transformedData);
           setPropertySubmission(transformedData);
         } else {
           setError("لم يتم العثور على طلب العقار");
@@ -232,8 +271,6 @@ export default function PropertySubmissionDetailsContainer({
       </>
     );
   }
-
-  console.log("Transformed property submission:", propertySubmission);
 
   return (
     <>

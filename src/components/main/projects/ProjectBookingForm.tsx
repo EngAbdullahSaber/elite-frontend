@@ -6,6 +6,7 @@ import PrimaryButton from "@/components/shared/Button";
 import { createAppointment } from "@/services/appointments/appointments";
 import toast from "react-hot-toast";
 import { FaClock, FaArrowRight } from "react-icons/fa";
+import { CreateCoversions } from "@/services/trackingService/trackingService";
 
 // Define types based on your API
 interface CreateAppointmentData {
@@ -130,7 +131,6 @@ export default function ProjectBookingForm({ id }: { id: string }) {
     const displayHour = hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minutes} ${period}`;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -152,11 +152,39 @@ export default function ProjectBookingForm({ id }: { id: string }) {
         endTime: formData.endTime,
       };
 
-      console.log("Submitting appointment data:", appointmentData);
-
       const result = await createAppointment(appointmentData);
 
-      console.log("Appointment created successfully:", result);
+      // Get user data from localStorage safely
+      let userData = null;
+      try {
+        const userString = localStorage.getItem("user");
+        if (userString) {
+          userData = JSON.parse(userString);
+        }
+      } catch (parseError) {
+        console.warn(
+          "Failed to parse user data from localStorage:",
+          parseError
+        );
+      }
+
+      // Create conversion for customers
+      if (userData && userData.userType === "customer" && userData.id) {
+        try {
+          const visitorId = localStorage.getItem("visitor_id");
+          await CreateCoversions({
+            userId: userData.id,
+            type: "appointment",
+            visitorId: visitorId ? Number(visitorId) : undefined,
+          });
+        } catch (conversionError) {
+          console.warn(
+            "Failed to create conversion, but appointment was booked:",
+            conversionError
+          );
+          // Don't throw error here - appointment was successful
+        }
+      }
 
       // Reset form on success
       setFormData({
@@ -178,8 +206,6 @@ export default function ProjectBookingForm({ id }: { id: string }) {
         },
       });
     } catch (error: any) {
-      console.error("Error creating appointment:", error);
-
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
@@ -213,7 +239,6 @@ export default function ProjectBookingForm({ id }: { id: string }) {
       setLoading(false);
     }
   };
-
   // Get minimum date (today)
   const getMinDate = () => {
     const today = new Date();

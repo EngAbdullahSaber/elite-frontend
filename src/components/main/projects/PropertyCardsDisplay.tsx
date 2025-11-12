@@ -5,6 +5,7 @@ import useProperties from "@/hooks/dashboard/admin/properties/useProperties";
 import Link from "next/link";
 import Image from "next/image";
 import { ImageBaseUrl } from "@/libs/app.config";
+import FavoriteButton from "@/components/shared/FavoriteButton";
 
 export default function PropertyCardsDisplay({
   isAdmin = false,
@@ -58,7 +59,7 @@ export default function PropertyCardsDisplay({
           >
             <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 group-hover:border-blue-300">
               {/* Property Image */}
-              <div className="relative h-48 bg-gray-100">
+              <div className="relative h-48 overflow-hidden bg-gray-100">
                 {primaryImage ? (
                   <img
                     src={
@@ -67,8 +68,7 @@ export default function PropertyCardsDisplay({
                         : ImageBaseUrl + primaryImage.mediaUrl
                     }
                     alt={property.title}
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="w-full h-full object-contain bg-white"
                     onError={(e) => {
                       // Fallback to placeholder if image fails to load
                       e.currentTarget.src = "/placeholder-property.jpg";
@@ -90,7 +90,9 @@ export default function PropertyCardsDisplay({
                     : "السعر غير متوفر"}
                 </div>
               </div>
-
+              {localStorage.getItem("user") && (
+                <FavoriteButton property={property} />
+              )}
               {/* Property Details */}
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-1">
