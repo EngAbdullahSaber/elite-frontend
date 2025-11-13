@@ -8,7 +8,6 @@ import { Suspense } from "react";
 
 export default function AgentDetailsPage() {
   const { agentId } = useParams();
-  console.log(agentId);
   return (
     <div>
       <Suspense fallback={<LoadingAgentDetailsPage />}>

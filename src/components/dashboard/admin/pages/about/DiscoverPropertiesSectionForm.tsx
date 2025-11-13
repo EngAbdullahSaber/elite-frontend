@@ -100,8 +100,7 @@ export default function DiscoverPropertiesSectionForm({
 
       if (targetSection) {
         setDiscoverSection(targetSection);
-        console.log("Found discover properties section:", targetSection);
-      } else {
+       } else {
         console.warn(`Section with ID ${DISCOVER_SECTION_ID} not found`);
         toast.error("لم يتم العثور على قسم استكشاف العقارات");
       }

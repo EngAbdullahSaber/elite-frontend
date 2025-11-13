@@ -62,8 +62,6 @@ export interface PartnerRow {
 
 // Helper function to map API response to PartnerRow
 function mapApiPartnerToRow(apiPartner: any): PartnerRow {
-  console.log("Partner API Response:", apiPartner);
-
   return {
     id: apiPartner.id.toString(),
     name: apiPartner.name,
@@ -204,7 +202,6 @@ export default function usePartner() {
     ) => {
       try {
         // This would use the getPartnerStats service
-        console.log("Fetching performance for partner:", partnerId, params);
 
         // Placeholder - implement based on your performance API
         return {
@@ -234,7 +231,6 @@ export default function usePartner() {
     ) => {
       try {
         // This would use the getPartnerStats service
-        console.log("Fetching stats for partner:", partnerId, params);
 
         // Placeholder - implement based on your stats API
         return {

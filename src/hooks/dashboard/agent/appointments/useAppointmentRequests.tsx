@@ -49,26 +49,26 @@ export default function useAppointmentRequests() {
       totalCount?: number;
     }> => {
       try {
-        // Safely get agent ID from localStorage
+        // Safely get agent ID from sessionStorage
         let agentId: string | null = null;
 
         if (typeof window !== "undefined") {
           try {
-            const userData = localStorage.getItem("user");
+            const userData = sessionStorage.getItem("user");
             if (userData) {
               const user = JSON.parse(userData);
               agentId = user.id?.toString();
             }
           } catch (parseError) {
             console.error(
-              "Error parsing user data from localStorage:",
+              "Error parsing user data from sessionStorage:",
               parseError
             );
           }
         }
 
         if (!agentId) {
-          throw new Error("Agent ID not found in localStorage");
+          throw new Error("Agent ID not found in sessionStorage");
         }
 
         // Build query parameters from URL search params

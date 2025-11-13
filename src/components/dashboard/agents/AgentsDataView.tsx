@@ -24,7 +24,6 @@ export default function AgentsDataViewDataView({
   onDataUpdate,
 }: AgentsDataViewDataViewProps) {
   const { agents, loading, refetch, totalCount } = useAgents();
-  console.log("Current agents:", agents);
 
   // Create a getRows function that uses the current state
   const getRows = async () => ({
@@ -33,7 +32,6 @@ export default function AgentsDataViewDataView({
     totalCount: totalCount || agents?.length || 0,
   });
   const handleDataUpdate = (data: any[], filters: Record<string, any>) => {
-    console.log("DataView received update:", data.length, "rows"); // Debug log
     if (onDataUpdate) {
       onDataUpdate(data, filters);
     }

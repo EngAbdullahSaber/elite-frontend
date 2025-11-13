@@ -13,19 +13,15 @@ import { useEffect, useState } from "react";
 import { Partner } from "@/services/partner/partner";
 import PartnerDetails from "@/components/dashboard/partner/PartnerDetails";
 
-type Props = {
-  params: {
-    partnerId: string;
-  };
-};
-
-export default function PartnerPage({ params }: Props) {
-  const { partnerId } = params;
+export default function PartnerPage() {
+  const user = sessionStorage.getItem("user");
   const router = useRouter();
   const [partner, setPartner] = useState<Partner | null>(null);
   const [performanceData, setPerformanceData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { id } = JSON.parse(user);
+  console.log(id);
 
   useEffect(() => {
     async function fetchPartnerData() {
@@ -34,13 +30,13 @@ export default function PartnerPage({ params }: Props) {
         setError(null);
 
         // Fetch partner details
-        const partnersResponse = await getPartnerById(partnerId);
+        const partnersResponse = await getPartnerById(id);
 
         setPartner(partnersResponse.partner[0]);
 
         // Fetch partner performance data
         try {
-          const performance = await getPartnerPerformance(Number(partnerId));
+          const performance = await getPartnerPerformance(Number(id));
           setPerformanceData(performance);
         } catch (performanceError) {
           console.error(
@@ -58,10 +54,10 @@ export default function PartnerPage({ params }: Props) {
       }
     }
 
-    if (partnerId) {
+    if (user) {
       fetchPartnerData();
     }
-  }, [partnerId]);
+  }, []);
 
   if (loading) {
     return (
@@ -85,23 +81,8 @@ export default function PartnerPage({ params }: Props) {
     );
   }
 
-  if (!partner) {
-    notFound();
-    return null;
-  }
-
   return (
     <>
-      <DashboardHeaderTitle
-        path={["الشركاء", `تفاصيل الشريك - ${partner.name}`]}
-      >
-        <div className="flex gap-4 flex-wrap">
-          <Link className="btn-primary" href="/dashboard/admin/marketers">
-            <BiGroup /> عرض جميع الشركاء
-          </Link>
-        </div>
-      </DashboardHeaderTitle>
-
       <PartnerDetails partner={partner} performance={performanceData} />
     </>
   );

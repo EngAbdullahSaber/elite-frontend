@@ -4,17 +4,17 @@ import { headerConfigKeyName } from "./app.config";
 
 export function getHeaderConfig() {
   if (
-    typeof localStorage !== "undefined" &&
-    localStorage.getItem(headerConfigKeyName)
+    typeof sessionStorage !== "undefined" &&
+    sessionStorage.getItem(headerConfigKeyName)
   ) {
     return {
       headers: {
         Accept: "application/json",
         "Accept-Language": "ar",
-        Authorization: ` Bearer ${localStorage.getItem(headerConfigKeyName)}`,
+        Authorization: ` Bearer ${sessionStorage.getItem(headerConfigKeyName)}`,
       },
     };
-    //  JSON.parse(localStorage.getItem(headerConfigKeyName));
+    //  JSON.parse(sessionStorage.getItem(headerConfigKeyName));
   } else {
     return {
       headers: {
@@ -25,22 +25,22 @@ export function getHeaderConfig() {
   }
 }
 
-export const storeTokenInLocalStorage = (token) => {
-  if (typeof localStorage !== "undefined") {
-    localStorage.setItem(headerConfigKeyName, JSON.stringify(token));
+export const storeTokenInsessionStorage = (token) => {
+  if (typeof sessionStorage !== "undefined") {
+    sessionStorage.setItem(headerConfigKeyName, JSON.stringify(token));
   }
 };
 
 export function getToken() {
-  if (typeof localStorage !== "undefined") {
-    return localStorage.getItem(headerConfigKeyName);
+  if (typeof sessionStorage !== "undefined") {
+    return sessionStorage.getItem(headerConfigKeyName);
   }
-  return null; // If localStorage is not available
+  return null; // If sessionStorage is not available
 }
 
 export function clearAuthInfo() {
   if (typeof window !== "undefined") {
-    localStorage.removeItem(headerConfigKeyName);
+    sessionStorage.removeItem(headerConfigKeyName);
   }
 }
 

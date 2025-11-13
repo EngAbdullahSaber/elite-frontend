@@ -146,9 +146,7 @@ export default function AboutForm() {
     },
   });
 
-  const onSave = (values: AboutContentForm) => {
-    console.log("Saving about us content", values);
-  };
+  const onSave = (values: AboutContentForm) => {};
 
   return (
     <form onSubmit={handleSubmit(onSave)} className="space-y-6">

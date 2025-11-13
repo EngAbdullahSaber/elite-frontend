@@ -13,7 +13,6 @@ import { getAgents, getPendingAgents } from "@/services/agents/agents";
 
 // Helper function to map API response to AgentRow
 function mapApiAgentToRow(apiAgent: any): AgentRow {
-  console.log(apiAgent);
   return {
     id: apiAgent.id.toString(),
     name: apiAgent?.user?.fullName,

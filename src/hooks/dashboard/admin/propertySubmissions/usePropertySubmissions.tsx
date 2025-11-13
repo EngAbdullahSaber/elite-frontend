@@ -77,8 +77,7 @@ export default function usePropertySubmissions() {
           throw new Error("Failed to fetch data");
         }
 
-        console.log("API Response:", response); // Debug log
-
+ 
         // Transform API response to match your table format
         const transformedRows: propertySubmissionRow[] = response.records.map(
           (record: any) => ({

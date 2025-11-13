@@ -154,8 +154,7 @@ export default function NotificationsCard({
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching appointment notifications...");
-
+ 
         const response = await getAllsNotifications({
           limit: limit,
           type: "appointment_reminder", // Filter by appointment reminders only
@@ -164,14 +163,12 @@ export default function NotificationsCard({
           sortOrder: "DESC",
         });
 
-        console.log("API Response:", response);
-
+ 
         // Transform API notifications to our component format
         const transformedNotifications = transformApiNotifications(
           response.records || []
         );
-        console.log("Transformed notifications:", transformedNotifications);
-
+ 
         setNotifications(transformedNotifications);
       } catch (err: any) {
         console.error("Error fetching notifications:", err);

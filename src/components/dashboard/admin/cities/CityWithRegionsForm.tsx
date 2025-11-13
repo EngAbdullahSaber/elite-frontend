@@ -433,8 +433,7 @@ export default function CityWithRegionsForm({
       })),
     }));
 
-    console.log("Saving all data:", payload);
-
+ 
     if (onSave) {
       onSave(payload);
     }

@@ -55,15 +55,13 @@ export default function ExplorePropertiesSection() {
 
         // Fetch page sections for title and description
         const sectionsResponse = await getPageSections(PAGE_ID);
-        console.log("Sections response:", sectionsResponse);
-
+ 
         // Find the specific section by ID - use 'records' instead of 'data'
         const targetSection = sectionsResponse.records.find(
           (section: Section) => section.id === SECTION_ID
         );
 
-        console.log("Target section:", targetSection);
-
+ 
         if (targetSection) {
           setSectionData({
             id: targetSection.id,

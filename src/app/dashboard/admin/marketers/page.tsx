@@ -2,7 +2,6 @@ import DashboardHeaderTitle from "@/components/dashboard/DashboardHeaderTitle";
 import DashboardSectionCard from "@/components/dashboard/DashboardSectionCard";
 import MarketersDataView from "@/components/dashboard/marketers/MarketersDataView";
 import Link from "next/link";
-import DownloadList from "@/components/shared/DownloadContent";
 import { BiEditAlt } from "react-icons/bi";
 import PartnersDataView from "@/components/dashboard/partner/PartnersDataView";
 

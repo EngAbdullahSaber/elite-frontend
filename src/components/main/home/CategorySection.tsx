@@ -67,19 +67,19 @@ export const categories: Category[] = [
     icon: FaBuilding,
     color: "var(--secondary)",
   },
-  {
-    title: "صناعي",
-    description: "الصناعي يشير إلى المباني المخصصة للأعمال الصناعية.",
-    href: "/projects?type=industrial",
-    icon: FaIndustry,
-  },
-  {
-    title: "تجاري",
-    description: "التجاري يشير إلى الأنشطة أو المباني التجارية.",
-    href: "/projects?type=commercial",
-    icon: FaStore,
-    color: "var(--tertiary)",
-  },
+  // {
+  //   title: "صناعي",
+  //   description: "الصناعي يشير إلى المباني المخصصة للأعمال الصناعية.",
+  //   href: "/projects?type=industrial",
+  //   icon: FaIndustry,
+  // },
+  // {
+  //   title: "تجاري",
+  //   description: "التجاري يشير إلى الأنشطة أو المباني التجارية.",
+  //   href: "/projects?type=commercial",
+  //   icon: FaStore,
+  //   color: "var(--tertiary)",
+  // },
 ];
 
 interface SectionData {

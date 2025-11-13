@@ -154,16 +154,16 @@ export default function ProjectBookingForm({ id }: { id: string }) {
 
       const result = await createAppointment(appointmentData);
 
-      // Get user data from localStorage safely
+      // Get user data from sessionStorage safely
       let userData = null;
       try {
-        const userString = localStorage.getItem("user");
+        const userString = sessionStorage.getItem("user");
         if (userString) {
           userData = JSON.parse(userString);
         }
       } catch (parseError) {
         console.warn(
-          "Failed to parse user data from localStorage:",
+          "Failed to parse user data from sessionStorage:",
           parseError
         );
       }
@@ -171,11 +171,10 @@ export default function ProjectBookingForm({ id }: { id: string }) {
       // Create conversion for customers
       if (userData && userData.userType === "customer" && userData.id) {
         try {
-          const visitorId = localStorage.getItem("visitor_id");
+          const visitorId = sessionStorage.getItem("visitor_Id");
           await CreateCoversions({
-            userId: userData.id,
             type: "appointment",
-            visitorId: visitorId ? Number(visitorId) : undefined,
+            visitorId: visitorId,
           });
         } catch (conversionError) {
           console.warn(

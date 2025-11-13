@@ -25,7 +25,7 @@ type Props = {
   currentStatus: PropertySubmissionStatus;
   onConfirm?: () => void;
   onCancel?: () => void;
-  onStatusChange?: () => void; // Add this prop for refresh
+  onStatusChange?: () => void;
 };
 
 export default function PropertySubmissionStatusToggle({
@@ -33,14 +33,19 @@ export default function PropertySubmissionStatusToggle({
   currentStatus,
   onConfirm,
   onCancel,
-  onStatusChange, // Add this prop
+  onStatusChange,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] =
     useState<PropertySubmissionStatus>(currentStatus);
+  const [rejectionNotes, setRejectionNotes] = useState("");
 
   const handleChange = (value: string) => {
     setSelectedStatus(value as PropertySubmissionStatus);
+    // Clear rejection notes when status changes away from rejected
+    if (value !== "rejected") {
+      setRejectionNotes("");
+    }
   };
 
   const showSuccessToast = () => {
@@ -78,6 +83,12 @@ export default function PropertySubmissionStatusToggle({
       return;
     }
 
+    // Validate rejection notes
+    if (selectedStatus === "rejected" && !rejectionNotes.trim()) {
+      showErrorToast("يرجى إضافة ملاحظات توضح سبب الرفض");
+      return;
+    }
+
     setLoading(true);
     try {
       // Use the appropriate API method based on the selected status
@@ -89,12 +100,12 @@ export default function PropertySubmissionStatusToggle({
           await approvePropertySubmission(requestId);
           break;
         case "rejected":
-          await rejectPropertySubmission(requestId);
+          await rejectPropertySubmission(requestId, {
+            reason: rejectionNotes.trim(),
+          });
           break;
         case "pending":
           // For pending status, you might need a different endpoint
-          // If not available, you can use updatePropertySubmissionStatus if you have it
-          // await updatePropertySubmissionStatus(requestId, "pending");
           break;
         default:
           break;
@@ -102,11 +113,10 @@ export default function PropertySubmissionStatusToggle({
 
       showSuccessToast();
       onConfirm?.();
-      onStatusChange?.(); // Call the refresh callback
+      onStatusChange?.();
     } catch (error: any) {
       console.error("Failed to update property request status:", error);
 
-      // Show specific error message based on the error
       const errorMessage =
         error.response?.data?.message || "فشل في تحديث حالة الطلب";
       showErrorToast(errorMessage);
@@ -157,6 +167,26 @@ export default function PropertySubmissionStatusToggle({
         className="mb-6"
       />
 
+      {/* Rejection Notes Section - Only show when rejected is selected */}
+      {selectedStatus === "rejected" && (
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            ملاحظات الرفض *
+          </label>
+          <textarea
+            value={rejectionNotes}
+            onChange={(e) => setRejectionNotes(e.target.value)}
+            placeholder="أضف ملاحظات توضح سبب رفض الطلب..."
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            هذه الملاحظات ستظهر للمستخدم لمعرفة سبب الرفض
+          </p>
+        </div>
+      )}
+
       <div className="flex justify-end gap-3 pt-4">
         <button
           onClick={onCancel}
@@ -167,7 +197,11 @@ export default function PropertySubmissionStatusToggle({
         </button>
         <button
           onClick={handleToggle}
-          disabled={loading || selectedStatus === currentStatus}
+          disabled={
+            loading ||
+            selectedStatus === currentStatus ||
+            (selectedStatus === "rejected" && !rejectionNotes.trim())
+          }
           className="px-4 py-2 rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-600)] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (

@@ -215,8 +215,7 @@ export async function getPageById(
       signal,
     });
 
-    console.log("Page API Response:", response.data);
-
+ 
     return response.data.data || response.data.record || response.data;
   } catch (error) {
     console.error(`Error fetching page ${id}:`, error);

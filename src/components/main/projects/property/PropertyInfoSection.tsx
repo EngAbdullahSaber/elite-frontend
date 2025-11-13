@@ -15,7 +15,6 @@ export default function PropertyInfoSection({
   details,
 }: PropertyInfoSectionProps) {
   const hasDetails = details && Object.keys(details).length > 0;
-  console.log(details);
   return (
     <section className="bg-white rounded-xl p-6 shadow-sm">
       <h2 className="text-2xl font-bold mb-4">معلومات العقار</h2>

@@ -117,52 +117,7 @@ export const partnerColumns: TableColumn<PartnerRow>[] = [
     key: "name",
     label: "الاسم",
   },
-  {
-    key: "kind",
-    label: "النوع",
-    cell: (val) => {
-      const kindStyles: Record<PartnerKind, string> = {
-        internal: "bg-blue-100 text-blue-800 border border-blue-200",
-        external: "bg-green-100 text-green-800 border border-green-200",
-      };
-      const style = kindStyles[val as PartnerKind] || "";
 
-      return (
-        <span className={`${style} px-3 py-1 rounded-full text-sm font-medium`}>
-          {partnerKindMap[val as PartnerKind]}
-        </span>
-      );
-    },
-  },
-  {
-    key: "platform",
-    label: "المنصة",
-    cell: (val) => {
-      if (!val) {
-        return <span className="text-gray-400">غير محدد</span>;
-      }
-
-      const platformStyles: Record<Exclude<PartnerPlatform, null>, string> = {
-        instagram: "bg-gradient-to-r from-purple-500 to-pink-500 text-white",
-        facebook: "bg-blue-600 text-white",
-        twitter: "bg-black text-white",
-        youtube: "bg-red-600 text-white",
-        tiktok: "bg-black text-white",
-        snapchat: "bg-yellow-400 text-black",
-        website: "bg-indigo-600 text-white",
-        other: "bg-gray-500 text-white",
-      };
-      const style =
-        platformStyles[val as Exclude<PartnerPlatform, null>] ||
-        "bg-gray-200 text-gray-700";
-
-      return (
-        <span className={`${style} px-3 py-1 rounded-full text-sm font-medium`}>
-          {partnerPlatformMap[val as Exclude<PartnerPlatform, null>]}
-        </span>
-      );
-    },
-  },
   {
     key: "referralCode",
     label: "كود الإحالة",
@@ -172,81 +127,10 @@ export const partnerColumns: TableColumn<PartnerRow>[] = [
       </span>
     ),
   },
-  {
-    key: "campaign",
-    label: "الحملة",
-    cell: (val) => {
-      const campaign = val as PartnerRow["campaign"];
-      if (!campaign) {
-        return <span className="text-gray-400">لا توجد حملة</span>;
-      }
 
-      const statusStyles: Record<string, string> = {
-        scheduled: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-        running: "bg-blue-100 text-blue-800 border border-blue-200",
-        completed: "bg-green-100 text-green-800 border border-green-200",
-        cancelled: "bg-red-100 text-red-800 border border-red-200",
-        draft: "bg-gray-100 text-gray-800 border border-gray-200",
-      };
-      const statusStyle =
-        statusStyles[campaign.status] || "bg-gray-100 text-gray-800";
-
-      return (
-        <div className="space-y-1">
-          <div className="font-medium text-sm">{campaign.name}</div>
-          <span className={`${statusStyle} px-2 py-1 rounded text-xs`}>
-            {campaignStatusMap[campaign.status] || campaign.status}
-          </span>
-        </div>
-      );
-    },
-  },
   {
     key: "createdAt",
     label: "تاريخ الإنشاء",
     cell: (val) => <span className="text-gray-600">{formatDate(val)}</span>,
-  },
-  {
-    key: "status",
-    label: "الحالة",
-    cell: (val) => {
-      const statusStyles: Record<PartnerStatus, string> = {
-        active:
-          "bg-[#EBFBF2] text-[var(--secondary-500)] border border-[var(--secondary-200)]",
-        inactive: "bg-gray-100 text-gray-600 border border-gray-300",
-      };
-      const style = statusStyles[val as PartnerStatus] || "";
-
-      return (
-        <span className={`${style} px-3 py-1 rounded-full text-sm font-medium`}>
-          {partnerStatusMap[val as PartnerStatus]}
-        </span>
-      );
-    },
-  },
-  {
-    key: "campaign",
-    label: "تفاصيل الحملة",
-    cell: (val) => {
-      const campaign = val as PartnerRow["campaign"];
-      if (!campaign) {
-        return <span className="text-gray-400">-</span>;
-      }
-
-      return (
-        <div className="text-sm space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">القناة:</span>
-            <span className="text-gray-600">{campaign.targetChannel}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-medium">الفترة:</span>
-            <span className="text-gray-600">
-              {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
-            </span>
-          </div>
-        </div>
-      );
-    },
   },
 ];

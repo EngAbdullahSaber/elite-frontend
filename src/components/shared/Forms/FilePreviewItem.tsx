@@ -63,7 +63,6 @@ export default function FilePreviewItem({
 
   const { icon: FileIcon, color } = fileTypeMap[ext] || fileTypeMap.default;
 
-  console.log(fileObj);
   return (
     <div key={idx} className="relative group">
       {isImage ? (

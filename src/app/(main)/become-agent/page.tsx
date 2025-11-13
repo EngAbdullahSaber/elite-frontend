@@ -15,9 +15,9 @@ export default function BecomeAgentPage() {
     const checkAuth = () => {
       try {
         // Check for various authentication indicators
-        const token = localStorage.getItem(headerConfigKeyName);
+        const token = sessionStorage.getItem(headerConfigKeyName);
 
-        const userData = localStorage.getItem("user");
+        const userData = sessionStorage.getItem("user");
 
         const isLoggedIn = !!(token || userData);
 

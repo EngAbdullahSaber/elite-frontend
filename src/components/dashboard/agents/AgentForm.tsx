@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,13 +10,12 @@ import toast from "react-hot-toast";
 import Card from "@/components/shared/Card";
 import PrimaryButton from "@/components/shared/Button";
 import SoftActionButton from "@/components/shared/SoftActionButton";
-import SelectInput from "@/components/shared/Forms/SelectInput";
-import { AgentRow } from "@/types/dashboard/agent";
 import FieldErrorMessage from "@/components/shared/Forms/FieldErrorMessage";
+import { AgentRow } from "@/types/dashboard/agent";
 import { getClients } from "@/services/clinets/clinets";
 import { createAgent, updateAgent } from "@/services/agents/agents";
 import { getCities } from "@/services/cities/cities";
-import UserChanger from "../UserChanger";
+import UserChangerPagination from "../UserChangerPagination";
 
 // Types for API data
 interface Client {
@@ -30,6 +29,13 @@ interface Client {
 interface City {
   id: number;
   name: string;
+}
+
+interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalRecords: number;
+  hasNextPage: boolean;
 }
 
 // Props
@@ -72,9 +78,28 @@ export default function AgentForm({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  // Clients state with pagination
   const [clients, setClients] = useState<Client[]>([]);
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientPagination, setClientPagination] = useState<PaginationMeta>({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    hasNextPage: false,
+  });
+
+  // Cities state with pagination
   const [cities, setCities] = useState<City[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
+  const [cityPagination, setCityPagination] = useState<PaginationMeta>({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    hasNextPage: false,
+  });
 
   const isEdit = isCurentUser || (agent && agent.id);
 
@@ -96,47 +121,160 @@ export default function AgentForm({
     },
   });
 
-  const fetchData = async () => {
-    try {
-      setDataLoading(true);
+  // Fetch clients with search and pagination
+  const fetchClients = useCallback(
+    async (
+      page: number = 1,
+      search: string = "",
+      resetList: boolean = false
+    ) => {
+      setClientsLoading(true);
+      try {
+        const params: Record<string, string> = {
+          page: page.toString(),
+          limit: "10",
+          userType: "customer",
+        };
 
-      // Fetch clients (users with type 'customer')
-      const clientsResponse = await getClients({
-        userType: "customer",
-        limit: 100,
-      });
-      setClients(clientsResponse?.records || []);
+        if (search) {
+          params.search = search;
+        }
 
-      // Fetch cities
-      const citiesResponse = await getCities();
-      setCities(citiesResponse?.records || []);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("فشل في تحميل البيانات", {
-        duration: 5000,
-        position: "top-center",
-        icon: "❌",
-      });
-    } finally {
-      setDataLoading(false);
+        const response = await getClients(params);
+        const clientsData = response?.records || [];
+        const paginationData = response;
+
+        // Calculate hasNextPage based on current page and total records
+        const totalPages = Math.ceil((paginationData.total_records || 0) / 10);
+        const hasNextPage = page < totalPages;
+
+        setClients((prev) =>
+          resetList ? clientsData : [...prev, ...clientsData]
+        );
+        setClientPagination({
+          currentPage: paginationData.current_page || page,
+          totalPages: totalPages,
+          totalRecords: paginationData.total_records || 0,
+          hasNextPage: hasNextPage,
+        });
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+        toast.error("فشل في تحميل العملاء", {
+          duration: 5000,
+          position: "top-center",
+          icon: "❌",
+        });
+      } finally {
+        setClientsLoading(false);
+      }
+    },
+    []
+  );
+
+  // Fetch cities with search and pagination
+  const fetchCities = useCallback(
+    async (
+      page: number = 1,
+      search: string = "",
+      resetList: boolean = false
+    ) => {
+      setCitiesLoading(true);
+      try {
+        const params: Record<string, string> = {
+          page: page.toString(),
+          limit: "5",
+        };
+
+        if (search) {
+          params.search = search;
+        }
+
+        const response = await getCities(params);
+        const citiesData = response?.records || [];
+        const paginationData = response;
+
+        // Calculate hasNextPage based on current page and total records
+        const totalPages = Math.ceil((paginationData.total_records || 0) / 5);
+        const hasNextPage = page < totalPages;
+
+        setCities((prev) =>
+          resetList ? citiesData : [...prev, ...citiesData]
+        );
+        setCityPagination({
+          currentPage: paginationData.current_page || page,
+          totalPages: totalPages,
+          totalRecords: paginationData.total_records || 0,
+          hasNextPage: hasNextPage,
+        });
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+        toast.error("فشل في تحميل المدن", {
+          duration: 5000,
+          position: "top-center",
+          icon: "❌",
+        });
+      } finally {
+        setCitiesLoading(false);
+      }
+    },
+    []
+  );
+
+  // Handle client search
+  const handleClientSearch = (search: string) => {
+    setClientSearch(search);
+    fetchClients(1, search, true);
+  };
+
+  // Handle city search
+  const handleCitySearch = (search: string) => {
+    setCitySearch(search);
+    fetchCities(1, search, true);
+  };
+
+  // Handle client pagination
+  const handleClientLoadMore = () => {
+    if (clientPagination.hasNextPage && !clientsLoading) {
+      fetchClients(clientPagination.currentPage + 1, clientSearch, false);
     }
   };
 
-  // Fetch clients and cities on component mount
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Format clients for UserChanger component
-  const formatUsers = (users: Client[]) => {
-    return users.map((user) => ({
-      id: user.id,
-      name: user.fullName,
-      email: user.email,
-      phone: user.phoneNumber,
-      image: user.profilePhotoUrl,
+  // Handle city pagination
+  const handleCityLoadMore = () => {
+    if (cityPagination.hasNextPage && !citiesLoading) {
+      fetchCities(cityPagination.currentPage + 1, citySearch, false);
+    }
+  };
+   // Format clients for UserChangerPagination component
+  const formatClients = (clients: Client[]) => {
+    return clients.map((client) => ({
+      id: client.id,
+      name: client.fullName,
+      email: client.email,
+      phone: client.phoneNumber,
+      image: client.profilePhotoUrl,
     }));
   };
+
+  // Format cities for UserChangerPagination component
+  const formatCities = (cities: City[]) => {
+    return cities.map((city) => ({
+      id: city.id,
+      name: city.name,
+      email: "", // Cities don't have emails
+      phone: "", // Cities don't have phones
+      image: undefined,
+    }));
+  };
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      await Promise.all([fetchClients(1, "", true), fetchCities(1, "", true)]);
+    };
+
+    fetchInitialData();
+  }, [fetchClients, fetchCities]);
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
@@ -272,31 +410,57 @@ export default function AgentForm({
         {/* العميل */}
         <div className="col-span-12 md:col-span-6">
           <label className="text-lg font-medium block mb-3">العميل</label>
-          <UserChanger
-            users={formatUsers(clients)}
-            label="عميل"
+          <UserChangerPagination
+            users={formatClients(clients)}
             initialUserId={agent?.userId ? Number(agent.userId) : undefined}
-            onChange={(client) => setValue("userId", client?.id || 0)}
-            loading={dataLoading}
+            label="عميل"
+            onChange={(client) => {
+              if (client) {
+                setValue("userId", client.id);
+              } else {
+                setValue("userId", 0);
+              }
+            }}
+            loading={clientsLoading}
+            searchable={true}
+            onSearch={handleClientSearch}
+            searchValue={clientSearch}
+            hasMore={clientPagination.hasNextPage}
+            onLoadMore={handleClientLoadMore}
+            loadingMore={clientsLoading}
           />
           <FieldErrorMessage errors={errors} fieldName="userId" />
+          <p className="text-sm text-gray-500 mt-1">
+            اختر العميل المراد تحويله إلى وسيط
+          </p>
         </div>
 
         {/* المدينة */}
         <div className="col-span-12 md:col-span-6">
-          <SelectInput
-            name="cityId"
-            label="المدينة"
-            value={watch("cityId")?.toString() || ""}
-            onChange={(val) => setValue("cityId", parseInt(val))}
-            options={cities.map((city) => ({
-              label: city.name,
-              value: city.id.toString(),
-            }))}
-            error={errors.cityId?.message}
-            placeholder="اختر المدينة"
-            loading={dataLoading}
+          <label className="text-lg font-medium block mb-3">المدينة</label>
+          <UserChangerPagination
+            users={formatCities(cities)}
+            initialUserId={agent?.cityId ? Number(agent.cityId) : undefined}
+            label="مدينة"
+            onChange={(city) => {
+              if (city) {
+                setValue("cityId", city.id);
+              } else {
+                setValue("cityId", 0);
+              }
+            }}
+            loading={citiesLoading}
+            searchable={true}
+            onSearch={handleCitySearch}
+            searchValue={citySearch}
+            hasMore={cityPagination.hasNextPage}
+            onLoadMore={handleCityLoadMore}
+            loadingMore={citiesLoading}
           />
+          <FieldErrorMessage errors={errors} fieldName="cityId" />
+          <p className="text-sm text-gray-500 mt-1">
+            اختر المدينة التي يعمل فيها الوسيط
+          </p>
         </div>
 
         {/* Document Uploads */}
@@ -372,7 +536,10 @@ export default function AgentForm({
 
         {/* Buttons */}
         <div className="col-span-12 flex items-center gap-6 flex-wrap pt-4">
-          <PrimaryButton type="submit" disabled={isLoading || dataLoading}>
+          <PrimaryButton
+            type="submit"
+            disabled={isLoading || clientsLoading || citiesLoading}
+          >
             {isLoading
               ? isEdit
                 ? "جاري التحديث..."
@@ -384,7 +551,7 @@ export default function AgentForm({
           <SoftActionButton
             type="button"
             onClick={handleCancel}
-            disabled={isLoading || dataLoading}
+            disabled={isLoading || clientsLoading || citiesLoading}
           >
             إلغاء
           </SoftActionButton>

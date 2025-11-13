@@ -319,8 +319,7 @@ export default function TermsTabsForm() {
         termsHtml: completeHtml,
       };
 
-      console.log("Updating site settings with complete HTML:", updateData);
-
+ 
       // Update the site settings
       await updateSiteSettings(updateData);
 
@@ -336,8 +335,7 @@ export default function TermsTabsForm() {
         },
       });
 
-      console.log("Terms and conditions updated successfully:", values);
-    } catch (error: any) {
+     } catch (error: any) {
       console.error("Error updating site settings:", error);
 
       const errorMessage =

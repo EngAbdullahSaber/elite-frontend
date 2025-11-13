@@ -108,8 +108,7 @@ export default function WhyChooseUsSectionForm({
         console.warn(`Missing sections: ${missingSections.join(", ")}`);
         toast.error(`لم يتم العثور على: ${missingSections.join(", ")}`);
       } else {
-        console.log("Found all why choose us sections");
-      }
+       }
     } catch (error) {
       console.error("Error fetching why choose us sections:", error);
       toast.error("فشل في تحميل بيانات قسم لماذا تختارنا");

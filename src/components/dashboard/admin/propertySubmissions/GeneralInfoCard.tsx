@@ -25,7 +25,7 @@ export default function GeneralInfoCard({ request }: { request: any }) {
             تاريخ الإنشاء
           </label>
           <p className="text-gray-900">
-            {new Date(request.createdAt).toLocaleDateString("ar-SA")}
+            {new Date(request.createdAt)?.toLocaleDateString("ar-SA")}
           </p>
         </div>
 

@@ -47,7 +47,6 @@ export default function useClients() {
       try {
         // Get filter parameters from URL
         const status = getParam("status");
-        const sort = getParam("sort");
         const dir = getParam("dir");
         const joinedFrom = getParam("joinedAt_from");
         const joinedTo = getParam("joinedAt_to");
@@ -79,16 +78,6 @@ export default function useClients() {
         // Add search filter
         if (searchKey) {
           apiParams.search = searchKey;
-        }
-
-        // Add sorting
-        if (sort) {
-          apiParams.sortBy = sort === "joinedAt" ? "createdAt" : sort;
-          apiParams.sortOrder = dir === "desc" ? "DESC" : "ASC";
-        } else {
-          // Default sorting
-          apiParams.sortBy = "createdAt";
-          apiParams.sortOrder = "DESC";
         }
 
         // Call the API - use getCustomers if we only want customers, otherwise getClients

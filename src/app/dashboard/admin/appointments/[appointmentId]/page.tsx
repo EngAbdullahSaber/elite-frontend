@@ -32,8 +32,7 @@ export default function AppointmentDetailsPage({ params }: Props) {
 
       const appointmentData = await getAppointmentById(parseInt(appointmentId));
 
-      console.log("📋 Raw API Response:", appointmentData);
-
+ 
       // Map API response to AppointmentRow type
       const mappedAppointment = {
         id: appointmentData.id.toString(),
@@ -79,8 +78,7 @@ export default function AppointmentDetailsPage({ params }: Props) {
         proofFiles: appointmentData.proofFiles || [],
       };
 
-      console.log("🔄 Mapped Appointment:", mappedAppointment);
-      setAppointment(mappedAppointment);
+       setAppointment(mappedAppointment);
     } catch (err) {
       console.error("❌ Error fetching appointment:", err);
       setError("فشل في تحميل بيانات الموعد");

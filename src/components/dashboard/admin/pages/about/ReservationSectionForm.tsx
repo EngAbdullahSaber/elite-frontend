@@ -90,8 +90,7 @@ export default function ReservationSectionForm({
 
       if (targetSection) {
         setReservationSection(targetSection);
-        console.log("Found reservation section:", targetSection);
-      } else {
+       } else {
         console.warn(`Section with ID ${RESERVATION_SECTION_ID} not found`);
         toast.error("لم يتم العثور على قسم الحجوزات");
       }

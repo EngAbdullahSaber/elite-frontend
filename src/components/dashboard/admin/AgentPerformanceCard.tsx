@@ -74,26 +74,21 @@ export default function AgentPerformanceCard({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
- 
     // Otherwise, fetch from API
     const fetchAgentPerformance = async () => {
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching agent performance data...");
 
         const response = await getAgentReviews({
           limit: 100, // Get enough records to analyze
           isApproved: true, // Only approved reviews
         });
 
-        console.log("Agent reviews API response:", response);
-
         // Process the data to get agent performance metrics
         const agentPerformance = calculateAgentPerformance(
           response.records || []
         );
-        console.log("Processed agent performance:", agentPerformance);
 
         // Limit the number of agents shown
         const limitedAgents = agentPerformance.slice(0, limit);

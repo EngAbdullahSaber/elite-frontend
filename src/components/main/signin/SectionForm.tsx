@@ -95,6 +95,7 @@ export default function SectionForm() {
       admin: "مسؤول",
       agent: "وسيط",
       customer: "عميل",
+      marketer: "مسوق",
     };
 
     const userTypeName = userTypeMap[userType] || "مستخدم";
@@ -126,6 +127,9 @@ export default function SectionForm() {
           break;
         case "customer":
           router.push("/");
+          break;
+        case "marketer":
+          router.push("/marketer");
           break;
         default:
           router.push("/");
@@ -162,12 +166,11 @@ export default function SectionForm() {
         email: email,
         password: password,
       });
-      console.log(response);
       if (response) {
-        // Store tokens in localStorage
-        localStorage.setItem(headerConfigKeyName, response.accessToken);
-        localStorage.setItem("refreshToken", response.refreshToken);
-        localStorage.setItem("user", JSON.stringify(response));
+        // Store tokens in sessionStorage
+        sessionStorage.setItem(headerConfigKeyName, response.accessToken);
+        sessionStorage.setItem("refreshToken", response.refreshToken);
+        sessionStorage.setItem("user", JSON.stringify(response));
 
         // Redirect based on user type and return URL
         redirectUser(response.userType);
@@ -264,12 +267,11 @@ export default function SectionForm() {
         email: email,
         otp: otp,
       });
-      console.log(response);
       if (response) {
-        // Store tokens in localStorage
-        localStorage.setItem(headerConfigKeyName, response.accessToken);
-        localStorage.setItem("refreshToken", response.refreshToken);
-        localStorage.setItem("user", JSON.stringify(response));
+        // Store tokens in sessionStorage
+        sessionStorage.setItem(headerConfigKeyName, response.accessToken);
+        sessionStorage.setItem("refreshToken", response.refreshToken);
+        sessionStorage.setItem("user", JSON.stringify(response));
 
         // Redirect based on user type and return URL
         redirectUser(response.userType);

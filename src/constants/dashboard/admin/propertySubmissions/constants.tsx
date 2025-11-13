@@ -127,7 +127,7 @@ export const propertySubmissionColumns: TableColumn<propertySubmissionRow>[] = [
       const d = new Date(val);
       return (
         <div className="flex flex-col">
-          <span className="font-medium">{d.toLocaleDateString("ar-EG")}</span>
+          <span className="font-medium">{d?.toLocaleDateString("ar-EG")}</span>
           <span className="text-xs text-gray-500">
             {d.toLocaleTimeString("ar-EG")}
           </span>

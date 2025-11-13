@@ -47,8 +47,7 @@ export interface ShortLinkRow {
 
 // Helper function to map API response to ShortLinkRow
 function mapApiShortLinkToRow(apiShortLink: any): ShortLinkRow {
-  console.log("ShortLink API Response:", apiShortLink);
-
+ 
   // Generate short URL (you can replace with your actual domain)
   const shortUrl = `${window.location.origin}/s/${apiShortLink.slug}`;
 

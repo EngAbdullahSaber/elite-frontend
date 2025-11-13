@@ -1,65 +1,100 @@
-// utils/urlParams.ts
-export interface TrackingParams {
-  ref?: string;
-  campaignId?: string;
-  utm_source?: string;
-  utm_campaign?: string;
-  utm_medium?: string;
-  utm_term?: string;
-  utm_content?: string;
-  [key: string]: string | undefined;
-}
-
-export interface TrackingResponse {
-  visitorId: number;
-}
-
-export function getTrackingParams(): TrackingParams {
-  if (typeof window === "undefined") return {};
+// libs/urlParams.ts
+export function hasTrackingParams(): boolean {
+  if (typeof window === "undefined") return false;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const trackingParams: TrackingParams = {};
 
-  // Common tracking parameters
-  const trackingKeys = [
+  // Check for any tracking parameters
+  const trackingParams = [
     "ref",
     "campaignId",
+    "visitorId",
     "utm_source",
-    "utm_campaign",
     "utm_medium",
+    "utm_campaign",
     "utm_term",
     "utm_content",
   ];
 
-  trackingKeys.forEach((key) => {
-    const value = urlParams.get(key);
+  return trackingParams.some((param) => urlParams.has(param));
+}
+
+export function getTrackingParams(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const params: Record<string, string> = {};
+
+  // Get all tracking parameters
+  const trackingParams = [
+    "ref",
+    "campaignId",
+    "visitorId",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content",
+  ];
+
+  trackingParams.forEach((param) => {
+    const value = urlParams.get(param);
     if (value) {
-      trackingParams[key] = value;
+      params[param] = value;
     }
   });
 
-  return trackingParams;
-}
-
-export function hasTrackingParams(): boolean {
-  const params = getTrackingParams();
-  return Object.keys(params).length > 0;
+  return params;
 }
 
 export function storeVisitorId(visitorId: number): void {
-  localStorage.setItem("visitor_id", visitorId.toString());
-  sessionStorage.setItem("visitor_id", visitorId.toString());
+  if (typeof window === "undefined") return;
+
+  try {
+    // Store in sessionStorage for this browser session
+    sessionStorage.setItem("visitor_id", visitorId.toString());
+
+    // Set a cookie as fallback
+  } catch (error) {
+    console.error("Failed to store visitor ID:", error);
+  }
 }
 
 export function getVisitorId(): number | null {
   if (typeof window === "undefined") return null;
 
   try {
-    const stored =
-      localStorage.getItem("visitor_id") ||
-      sessionStorage.getItem("visitor_id");
-    return stored ? parseInt(stored, 10) : null;
-  } catch {
+    // Try sessionStorage first
+    const sessionId = sessionStorage.getItem("visitor_Id");
+    if (sessionId) return parseInt(sessionId, 10);
+
+    return null;
+  } catch (error) {
+    console.error("Failed to get visitor ID:", error);
     return null;
   }
+}
+
+// Helper function to generate tracking URL
+export function generateTrackingUrl(
+  baseUrl: string,
+  params: {
+    ref?: string;
+    campaignId?: number;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+  }
+): string {
+  const url = new URL(baseUrl);
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      url.searchParams.set(key, value.toString());
+    }
+  });
+
+  return url.toString();
 }

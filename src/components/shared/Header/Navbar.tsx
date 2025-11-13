@@ -51,16 +51,16 @@ export default function Navbar({
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get user data from localStorage
+    // Get user data from sessionStorage
     const getUserRole = () => {
       try {
-        const userData = localStorage.getItem("user");
+        const userData = sessionStorage.getItem("user");
         if (userData) {
           const user = JSON.parse(userData);
           return user.userType || null;
         }
       } catch (error) {
-        console.error("Error parsing user data from localStorage:", error);
+        console.error("Error parsing user data from sessionStorage:", error);
       }
       return null;
     };
@@ -114,7 +114,7 @@ export default function Navbar({
   useEffect(() => {
     const handleStorageChange = () => {
       try {
-        const userData = localStorage.getItem("user");
+        const userData = sessionStorage.getItem("user");
         if (userData) {
           const user = JSON.parse(userData);
           setUserRole(user.userType || null);

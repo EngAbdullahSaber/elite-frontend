@@ -19,7 +19,6 @@ import {
 
 export default function InfluencerDataView() {
   const { getRows } = useInfluencer();
-  console.log(getRows);
   return (
     <DataView<InfluencerRow>
       columns={influencerColumns}

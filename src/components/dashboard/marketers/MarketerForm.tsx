@@ -61,10 +61,8 @@ export default function MarketerForm({ marketer, isCurentUser = false, isAdmin =
 
     const onSubmit = (data: FormValues) => {
         if (marketer) {
-            console.log('🔄 تحديث المسوق:', { id: marketer.id, ...data });
-        } else {
-            console.log('🆕 إضافة مسوق جديد:', data);
-        }
+         } else {
+         }
     };
 
     const handleCancel = () => {

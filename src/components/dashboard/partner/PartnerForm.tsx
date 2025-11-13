@@ -19,7 +19,7 @@ import toast from "react-hot-toast";
 type Props = {
   partner?: Partner;
   isAdmin?: boolean;
-  onSuccess?: (response: { partner: Partner; shareUrl: string }) => void; // Callback for success with response
+  onSuccess?: (response: { partner: Partner; shareUrl: string }) => void;
 };
 
 // 🧠 Define Zod schema
@@ -43,6 +43,17 @@ const schema = z.object({
     .optional()
     .or(z.literal("")),
   isActive: z.boolean().default(true),
+  email: z
+    .string()
+    .email("البريد الإلكتروني يجب أن يكون صحيحاً")
+    .optional()
+    .or(z.literal("")),
+  password: z
+    .string()
+    .min(6, "كلمة المرور يجب أن تكون على الأقل 6 أحرف")
+    .max(50, "كلمة المرور طويلة جداً")
+    .optional()
+    .or(z.literal("")),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -62,6 +73,7 @@ export default function PartnerForm({
     partner: Partner;
     shareUrl: string;
   } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const isEdit = !!partner;
 
@@ -81,53 +93,22 @@ export default function PartnerForm({
       campaignId: partner?.campaign?.id || null,
       baseShareUrl: "",
       isActive: partner?.isActive ?? true,
+      email: partner?.email || "",
+      password: "",
     },
   });
 
   // Fetch campaigns on component mount
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        setLoadingCampaigns(true);
-        const result = await getCampaignsRows();
-
-        if (result.rows && result.rows.length > 0) {
-          const campaignOptions = result.rows.map((campaign) => ({
-            id: parseInt(campaign.id),
-            name: campaign.campaignName,
-          }));
-          setCampaigns(campaignOptions);
-        }
-      } catch (error) {
-        console.error("Error fetching campaigns:", error);
-        toast.error("فشل في تحميل قائمة الحملات", {
-          duration: 5000,
-          position: "top-center",
-          icon: "❌",
-          style: {
-            background: "#EF4444",
-            color: "#fff",
-            borderRadius: "8px",
-            fontSize: "14px",
-          },
-        });
-      } finally {
-        setLoadingCampaigns(false);
-      }
-    };
-
-    fetchCampaigns();
-  }, [getCampaignsRows]);
+  useEffect(() => {}, [getCampaignsRows]);
 
   const onSubmit = async (data: FormValues) => {
     try {
       const formData = {
         name: data.name,
-        kind: data.kind,
-        referralCode: data.referralCode || undefined,
-        campaignId: data.campaignId || undefined,
         baseShareUrl: data.baseShareUrl || undefined,
-        isActive: data.isActive,
+        referralCode: data.referralCode || undefined,
+        email: data.email || undefined,
+        passwordHash: data.password || undefined,
       };
 
       if (partner) {
@@ -144,7 +125,6 @@ export default function PartnerForm({
             fontSize: "14px",
           },
         });
-        console.log("🔄 تم تحديث الشريك:", { id: partner.id, ...formData });
 
         // Redirect to partners list after successful update
         setTimeout(() => {
@@ -169,7 +149,6 @@ export default function PartnerForm({
             fontSize: "14px",
           },
         });
-        console.log("🆕 تم إضافة شريك جديد:", response);
 
         // Call the success callback if provided
         if (onSuccess) {
@@ -205,12 +184,16 @@ export default function PartnerForm({
       campaignId: partner?.campaign?.id || null,
       baseShareUrl: "",
       isActive: partner?.isActive ?? true,
+      email: partner?.email || "",
+      password: "",
     });
 
     // Clear created partner data if canceling after creation
     if (createdPartnerData) {
       setCreatedPartnerData(null);
     }
+
+    setShowPassword(false);
 
     toast.success("تم إلغاء التغييرات", {
       duration: 3000,
@@ -228,6 +211,7 @@ export default function PartnerForm({
   const handleContinue = () => {
     // Clear the created partner data and reset form for new entry
     setCreatedPartnerData(null);
+    setShowPassword(false);
     reset({
       name: "",
       kind: "external",
@@ -235,6 +219,8 @@ export default function PartnerForm({
       campaignId: null,
       baseShareUrl: "",
       isActive: true,
+      email: "",
+      password: "",
     });
   };
 
@@ -266,26 +252,18 @@ export default function PartnerForm({
                 label="اسم الشريك"
                 value={createdPartnerData.partner.name}
               />
-              <InfoBlock
-                label="نوع الشريك"
-                value={
-                  createdPartnerData.partner.kind === "internal"
-                    ? "داخلي"
-                    : "خارجي"
-                }
-              />
+
+              {createdPartnerData.partner.email && (
+                <InfoBlock
+                  label="البريد الإلكتروني"
+                  value={createdPartnerData.partner.email}
+                />
+              )}
               <InfoBlock
                 label="كود الإحالة"
                 value={createdPartnerData.partner.referralCode}
                 valueClassName="font-mono"
               />
-
-              {createdPartnerData.partner.campaign && (
-                <InfoBlock
-                  label="الحملة"
-                  value={createdPartnerData.partner.campaign.name}
-                />
-              )}
             </div>
           </div>
 
@@ -366,20 +344,35 @@ export default function PartnerForm({
           />
         </div>
 
+        {/* Email Field */}
         <div className="col-span-12 md:col-span-6">
-          <SelectInput
-            name="kind"
-            label="نوع الشريك"
-            value={watch("kind")}
-            onChange={(val) => setValue("kind", val as PartnerKind)}
-            options={[
-              { label: "داخلي", value: "internal" },
-              { label: "خارجي", value: "external" },
-            ]}
-            error={errors.kind?.message}
-            required
+          <TextInput
+            id="email"
+            type="email"
+            label="البريد الإلكتروني"
+            placeholder="partner@example.com"
+            {...register("email")}
+            error={errors.email?.message}
+            helperText="اختياري - لحساب تسجيل الدخول للشريك"
           />
         </div>
+
+        {/* Password Field - Only show for new partners or when changing password */}
+        {!isEdit && (
+          <div className="col-span-12 md:col-span-6">
+            <div className="relative">
+              <TextInput
+                id="password"
+                type={showPassword ? "text" : "password"}
+                label="كلمة المرور"
+                placeholder="أدخل كلمة المرور"
+                {...register("password")}
+                error={errors.password?.message}
+                helperText="اختياري - إذا تم تركها فارغة، سيتم إنشاء كلمة مرور عشوائية"
+              />
+            </div>
+          </div>
+        )}
 
         <div className="col-span-12 md:col-span-6">
           <TextInput
@@ -388,27 +381,7 @@ export default function PartnerForm({
             placeholder="أدخل كود الإحالة"
             {...register("referralCode")}
             error={errors.referralCode?.message}
-          />
-        </div>
-
-        <div className="col-span-12 md:col-span-6">
-          <SelectInput
-            name="campaignId"
-            label="الحملة"
-            value={watch("campaignId")?.toString() || ""}
-            onChange={(val) =>
-              setValue("campaignId", val ? parseInt(val) : null)
-            }
-            options={[
-              { label: "بدون حملة", value: "" },
-              ...campaigns.map((campaign) => ({
-                label: campaign.name,
-                value: campaign.id.toString(),
-              })),
-            ]}
-            error={errors.campaignId?.message}
-            disabled={loadingCampaigns}
-            helperText={loadingCampaigns ? "جاري تحميل الحملات..." : ""}
+            helperText="اختياري - كود فريد لتحديد الشريك"
           />
         </div>
 
@@ -417,27 +390,28 @@ export default function PartnerForm({
             id="baseShareUrl"
             type="url"
             label="رابط المشاركة الأساسي"
-            placeholder="https://example.com"
+            placeholder="https://example.com/landing"
             {...register("baseShareUrl")}
             error={errors.baseShareUrl?.message}
+            helperText="اختياري - الرابط الأساسي لإحالة العملاء"
           />
         </div>
 
-        {isAdmin && (
-          <div className="col-span-12 md:col-span-6">
-            <SelectInput
-              name="isActive"
-              label="حالة الشريك"
-              value={watch("isActive") ? "true" : "false"}
-              onChange={(val) => setValue("isActive", val === "true")}
-              options={[
-                { label: "نشط", value: "true" },
-                { label: "غير نشط", value: "false" },
-              ]}
-              error={errors.isActive?.message}
-            />
-          </div>
-        )}
+        {/* Information Section */}
+        <div className="col-span-12 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="text-sm font-semibold text-blue-800 mb-2">
+            معلومات إضافية:
+          </h4>
+          <ul className="text-xs text-blue-700 space-y-1">
+            <li>
+              • <strong>البريد الإلكتروني وكلمة المرور:</strong> لإنشاء حساب
+              تسجيل دخول للشريك
+            </li>
+            <li>
+              • <strong>كود الإحالة:</strong> يستخدم لتتبع التحويلات والإحالات
+            </li>
+          </ul>
+        </div>
 
         <div className="col-span-12 flex items-center gap-6 flex-wrap pt-4 border-t">
           <PrimaryButton

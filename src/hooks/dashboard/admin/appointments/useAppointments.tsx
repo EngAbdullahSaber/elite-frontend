@@ -121,12 +121,6 @@ export default function useAppointments({
           response.totalCount ||
           records.length;
 
-        console.log("Appointments API Response:", {
-          records,
-          totalRecords,
-          rawResponse: response,
-        });
-
         // Transform API response to match your table format
         const transformedRows: AppointmentRow[] = Array.isArray(records)
           ? (records
@@ -217,7 +211,6 @@ export default function useAppointments({
         };
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
-          console.log("Request was aborted");
           return { rows: [] };
         }
 

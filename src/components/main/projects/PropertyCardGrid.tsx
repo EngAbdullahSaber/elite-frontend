@@ -12,11 +12,15 @@ import { ImageBaseUrl } from "@/libs/app.config";
 
 interface PropertyCardGridProps {
   property: any;
+  setFlag?: any;
+  flag?: any;
   isAdmin?: boolean;
 }
 
 export default function PropertyCardGrid({
   property,
+  setFlag,
+  flag,
   isAdmin = false,
 }: PropertyCardGridProps) {
   // Safe data extraction with fallbacks
@@ -97,7 +101,7 @@ export default function PropertyCardGrid({
           {propertyTypeLabels[propertyTypeKey] || propertyType}
         </Link>
         <div className="absolute w-[100px] top-3 right-3 flex items-center gap-2 z-10">
-          <FavoriteButton property={property} />
+          <FavoriteButton property={property} flag={flag} setFlag={setFlag} />
 
           {isAdmin && (
             <Link

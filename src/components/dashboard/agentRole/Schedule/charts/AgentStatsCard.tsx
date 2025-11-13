@@ -21,7 +21,6 @@ interface AgentStatsCardProps {
 }
 
 export default function AgentStatsCard({ stats }: AgentStatsCardProps) {
-  console.log(stats);
   return (
     <Card title="إحصائيات الوسيط">
       <div className="grid grid-cols-12 gap-4 lg:gap-6">

@@ -1,14 +1,13 @@
 // services/trackingService.ts
 
 import { api } from "@/libs/axios";
-import { TrackingResponse } from "@/libs/urlParams";
 
 export async function trackTraffic(data: {
   visitedUrl: string;
   landingPage: string;
   referralCode?: string;
   campaignId?: number;
-}): Promise<TrackingResponse> {
+}): Promise<any> {
   try {
     const response = await api.post("/traffic/track", data);
 
@@ -19,10 +18,9 @@ export async function trackTraffic(data: {
   }
 }
 export async function CreateCoversions(data: {
-  userId: string;
   type?: string;
   visitorId?: number;
-}): Promise<TrackingResponse> {
+}): Promise<any> {
   try {
     const response = await api.post("/traffic/conversions", data);
 

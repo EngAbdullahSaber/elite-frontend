@@ -49,8 +49,7 @@ export default function EditTeamSection({ control }: EditTeamSectionProps) {
             <ImageUpload
                 imageUrl={draft.imageUrl}
                 onChange={(e) => {
-                    console.log(e.target.files)
-                    if (e.target.files?.[0]) {
+                     if (e.target.files?.[0]) {
                         setDraft({
                             ...draft,
                             imageUrl: URL.createObjectURL(e.target.files[0]),

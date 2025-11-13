@@ -106,7 +106,6 @@ export default function ProjectDetailsPage() {
   const [property, setProperty] = useState<DetailedProperty | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  console.log(propertyId);
   useEffect(() => {
     const fetchProperty = async () => {
       try {
@@ -114,7 +113,6 @@ export default function ProjectDetailsPage() {
         setError(null);
 
         const propertyData = await getPropertyById(propertyId);
-        console.log("Fetched property data:", propertyData);
 
         setProperty(propertyData);
       } catch (err) {

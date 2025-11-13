@@ -36,7 +36,6 @@ export default function PersonalInfo() {
         setLoading(true);
         setError(null);
         const response = await GetProfile();
-        console.log("Profile API Response:", response); // Debug log
         setProfile(response);
       } catch (err) {
         console.error("Error fetching user profile:", err);

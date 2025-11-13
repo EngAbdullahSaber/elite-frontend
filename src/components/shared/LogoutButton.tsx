@@ -23,10 +23,10 @@ export default function LogoutButton({
       await Logout();
 
       // Clear local storage
-      localStorage.removeItem(headerConfigKeyName);
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
+      sessionStorage.removeItem(headerConfigKeyName);
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("role");
       sessionStorage.clear();
 
       // Show success toast
@@ -67,10 +67,10 @@ export default function LogoutButton({
       );
 
       // Even if API call fails, clear local storage and redirect
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
+      sessionStorage.removeItem("access_token");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("role");
       sessionStorage.clear();
 
       setTimeout(() => {

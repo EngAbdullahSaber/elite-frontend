@@ -10,16 +10,35 @@ import { BiBuilding, BiListUl } from "react-icons/bi";
 import { useState, useEffect } from "react";
 import { getPropertyById } from "@/services/properties/properties";
 import { Property } from "@/services/properties/properties";
+import { ImageBaseUrl } from "@/libs/app.config";
 
 type Props = {
   params: { projectId: string };
 };
 
-// Enhanced transformation function
+// Enhanced transformation function that matches your API response
 function transformPropertyToFormValues(property: Property): PropertyFormValues {
-  // Extract specifications and guarantees
+  // Extract specifications and guarantees from the API response
   const specifications = property.specifications || {};
   const guarantees = property.guarantees || {};
+
+  // Transform specifications to PropertyDetail format
+  const details: Record<string, PropertyDetail> = {};
+  Object.entries(specifications).forEach(([key, value]) => {
+    details[key] = {
+      name: key,
+      value: typeof value === "string" ? value : String(value),
+    };
+  });
+
+  // Transform guarantees to PropertyDetail format
+  const warranties: Record<string, PropertyDetail> = {};
+  Object.entries(guarantees).forEach(([key, value]) => {
+    warranties[key] = {
+      name: key,
+      value: typeof value === "string" ? value : String(value),
+    };
+  });
 
   return {
     // Basic info
@@ -28,79 +47,45 @@ function transformPropertyToFormValues(property: Property): PropertyFormValues {
     description: property.description,
     price: parseFloat(property.price) || 0,
 
-    // Property type
+    // Property type - use the actual property type name from API
     propertyType: mapPropertyType(property.propertyType?.name),
     accessType: property.accessType as "direct" | "mediated",
 
-    // Specifications
+    // Specifications - use bedrooms and bathrooms directly from API
     rooms: property.bedrooms || 0,
     bathrooms: property.bathrooms || 0,
     area: parseFloat(property.areaM2) || 0,
 
-    // Details and warranties
-    details: {
-      planNumber: {
-        name: "رقم المخطط",
-        value: specifications.planNumber || "",
-      },
-      pieceNumber: {
-        name: "رقم القطعة",
-        value: specifications.pieceNumber || "",
-      },
-      parking: {
-        name: "مواقف سيارات",
-        value: specifications.parking ? "نعم" : "لا",
-      },
-      furnished: {
-        name: "مؤثث",
-        value: specifications.furnished ? "نعم" : "لا",
-      },
-      pool: { name: "مسبح", value: specifications.pool ? "نعم" : "لا" },
-      garden: { name: "حديقة", value: specifications.garden ? "نعم" : "لا" },
-      elevator: { name: "مصعد", value: specifications.elevator ? "نعم" : "لا" },
-      security: {
-        name: "حماية",
-        value: specifications.security ? "نعم" : "لا",
-      },
-      utilities: { name: "المرافق", value: specifications.utilities || "" },
-      roadAccess: {
-        name: "وصول الطريق",
-        value: specifications.roadAccess || "",
-      },
-      ...specifications,
-    },
+    // Details and warranties - use the transformed objects
+    details: details,
+    warranties: warranties,
 
-    warranties: {
-      structure: { name: "ضمان الهيكل", value: guarantees.structure || "" },
-      maintenance: { name: "الصيانة", value: guarantees.maintenance || "" },
-      ownership: { name: "الملكية", value: guarantees.ownership || "" },
-      ...guarantees,
-    },
-
-    // Owner info
-    ownerName: property.ownerName || property.createdBy?.fullName || "",
-    ownerPhone: property.ownerPhone || property.createdBy?.phoneNumber || "",
+    // Owner info - use the data from API response
+    ownerName: property.ownerName || "",
+    ownerPhone: property.ownerPhone || "",
     ownerEmail: property.createdBy?.email || "",
     ownerNotes: property.ownerNotes || "",
 
-    // Media
+    // Media - transform media URLs with ImageBaseUrl
     images:
       property.medias?.map((media) => ({
-        url: media.mediaUrl,
-        isPrimary: media.isPrimary,
+        url: media.mediaUrl.startsWith("http")
+          ? media.mediaUrl
+          : ImageBaseUrl + media.mediaUrl,
+        isPrimary: media.isPrimary || false,
         id: media.id,
-        orderIndex: media.orderIndex,
+        orderIndex: media.orderIndex || 0,
       })) || [],
-    video: "",
+    video: "", // Video not present in API response
 
-    // Location
+    // Location - use the actual data from API
     address: formatAddress(property),
     cityId: property.cityId,
     areaId: property.areaId,
     propertyTypeId: property.propertyType?.id,
-    latitude: property.latitude,
-    longitude: property.longitude,
-    mapPlaceId: property.mapPlaceId,
+    latitude: property.latitude ? String(property.latitude) : "",
+    longitude: property.longitude ? String(property.longitude) : "",
+    mapPlaceId: property.mapPlaceId || "",
 
     // Status
     isActive: property.isActive !== undefined ? property.isActive : true,
@@ -134,7 +119,7 @@ function formatAddress(property: Property): string {
   const parts = [];
   if (property.area?.name) parts.push(property.area.name);
   if (property.city?.name) parts.push(property.city.name);
-  return parts.join("، ") || "";
+  return parts.join("، ") || property.title || "عنوان غير محدد";
 }
 
 export default function EditProjectPage({ params }: Props) {
@@ -149,13 +134,10 @@ export default function EditProjectPage({ params }: Props) {
         setLoading(true);
         setError(null);
 
-        console.log(`Fetching property with ID: ${projectId}`);
-        const propertyData = await getPropertyById(projectId);
-        console.log("Fetched property data:", propertyData);
-
+         const propertyData = await getPropertyById(projectId);
+ 
         const formData = transformPropertyToFormValues(propertyData);
-        console.log("Transformed form data:", formData);
-
+ 
         setProject(formData);
       } catch (err: any) {
         console.error("Error fetching property:", err);
@@ -253,16 +235,13 @@ export default function EditProjectPage({ params }: Props) {
         path={["المشاريع", `تعديل بيانات المشروع: ${project.title}`]}
       >
         <div className="flex gap-4 flex-wrap">
-          <Link className="btn-primary" href={`/projects/${project.id}`}>
-            <BiBuilding /> صفحة المشروع
-          </Link>
-          <Link className="btn-primary" href="/dashboard/admin/projects">
+          <Link className="btn-primary" href="/dashboard/admin/properties">
             <BiListUl /> عرض جميع المشاريع
           </Link>
         </div>
       </DashboardHeaderTitle>
 
-      <PropertyForm initialData={project} />
+      <PropertyForm initialData={project} isEdit={true} />
     </div>
   );
 }

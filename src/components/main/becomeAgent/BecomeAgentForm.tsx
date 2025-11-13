@@ -168,10 +168,10 @@ export default function BecomeAgentForm() {
     router.back();
   };
 
-  // Get user data from localStorage or context
+  // Get user data from sessionStorage or context
   const getUserData = () => {
     try {
-      const userDataStr = localStorage.getItem("user");
+      const userDataStr = sessionStorage.getItem("user");
       if (userDataStr) {
         const userData = JSON.parse(userDataStr);
         return {

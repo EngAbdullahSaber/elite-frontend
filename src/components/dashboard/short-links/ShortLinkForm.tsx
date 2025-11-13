@@ -275,8 +275,7 @@ export default function ShortLinkForm({
         campaignId: data.campaignId || null,
       };
 
-      console.log("📤 Sending data to API:", shortLinkData);
-
+ 
       if (isEdit && shortLink) {
         // Update existing short link
         await updateShortLink(parseInt(shortLink.id), shortLinkData);
@@ -293,10 +292,7 @@ export default function ShortLinkForm({
           },
         });
 
-        console.log("🔄 تم تحديث الرابط:", {
-          id: shortLink.id,
-          ...shortLinkData,
-        });
+       
       } else {
         // Create new short link - include slug for creation
         await createShortLink({
@@ -316,10 +312,7 @@ export default function ShortLinkForm({
           },
         });
 
-        console.log("🆕 تم إضافة رابط جديد:", {
-          slug: data.slug,
-          ...shortLinkData,
-        });
+        
       }
 
       // Call success callback if provided

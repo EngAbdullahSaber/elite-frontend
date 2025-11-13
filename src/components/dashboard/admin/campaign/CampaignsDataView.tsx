@@ -87,12 +87,8 @@ export function getCampaignActionsMenu(
         onClose={() => {
           onClose?.();
         }}
-        onConfirm={() =>
-          console.log(`Confirmed ${actionType} for campaign ${row.id}`)
-        }
-        onCancel={() =>
-          console.log(`Cancelled ${actionType} for campaign ${row.id}`)
-        }
+        onConfirm={() => console.log("")}
+        onCancel={() => console.log("")}
       />
     ),
   });

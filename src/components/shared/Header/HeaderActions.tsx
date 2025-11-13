@@ -21,8 +21,8 @@ export default function HeaderActions() {
   useEffect(() => {
     const checkAuthStatus = () => {
       try {
-        const accessToken = localStorage.getItem("EilateGate");
-        const userData = localStorage.getItem("user");
+        const accessToken = sessionStorage.getItem("EilateGate");
+        const userData = sessionStorage.getItem("user");
 
         setIsLoggedIn(!!accessToken);
 
@@ -56,10 +56,10 @@ export default function HeaderActions() {
   // Handle logout
   const handleLogout = () => {
     try {
-      // Remove all auth-related items from localStorage
-      localStorage.removeItem("EilateGate");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
+      // Remove all auth-related items from sessionStorage
+      sessionStorage.removeItem("EilateGate");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("user");
 
       // Update state
       setIsLoggedIn(false);

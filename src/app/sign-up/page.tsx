@@ -185,9 +185,8 @@ export default function SignUpPage() {
         },
       });
       await CreateCoversions({
-        userId: response.id,
         type: "registration",
-        visitorId: Number(localStorage.getItem("visitor_id")),
+        visitorId: sessionStorage.getItem("visitor_Id"),
       });
       setTimeout(() => {
         window.location.href = "/sign-in";

@@ -182,13 +182,11 @@ export default function PropertySubmissionDetailsContainer({
         setError(null);
 
         const apiData = await getPropertySubmission(parseInt(requestId));
-        console.log("Raw API Data:", apiData);
-
+ 
         if (apiData) {
           const transformedData =
             transformApiDataToPropertySubmissionFull(apiData);
-          console.log("Transformed Data:", transformedData);
-          setPropertySubmission(transformedData);
+           setPropertySubmission(transformedData);
         } else {
           setError("لم يتم العثور على طلب العقار");
         }

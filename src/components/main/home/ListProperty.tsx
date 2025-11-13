@@ -10,10 +10,14 @@ import PrimaryButton from "@/components/shared/Button";
 interface ListPropertyProps {
   properties: Property[];
   max?: number;
+  setFlag?: any;
+  flag?: any;
 }
 
 export default function ListProperty({
+  setFlag,
   properties,
+  flag,
   max = 10,
 }: ListPropertyProps) {
   const router = useRouter();
@@ -32,7 +36,11 @@ export default function ListProperty({
             key={idx}
             className="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3 px-3 xl:px-0"
           >
-            <PropertyCardGrid property={property} />
+            <PropertyCardGrid
+              flag={flag}
+              setFlag={setFlag}
+              property={property}
+            />
           </div>
         ))}
       </div>

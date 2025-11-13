@@ -26,7 +26,6 @@ export default function AgentDetailsWrapper({ agentId }: Props) {
         setError(null);
 
         const agentData = await getAgentById(agentId);
-        console.log("Fetched agent:", agentData);
 
         if (!agentData) {
           setError("الوسيط غير موجود");

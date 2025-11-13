@@ -222,19 +222,17 @@ export async function approvePropertySubmission(
 
 // POST - Reject property submission
 export async function rejectPropertySubmission(
-  id: number,
-  signal?: AbortSignal
+  requestId: number,
+  data?: { reason?: string }
 ) {
   try {
     const response = await api.post(
-      `/property-listing-requests/${id}/reject`,
-      {}, // Empty body since it's just an action
-      { signal }
+      `/property-listing-requests/${requestId}/reject`,
+      data || {}
     );
-
-    return response.data.data || response.data;
+    return response.data;
   } catch (error) {
-    console.error(`Error rejecting property submission ${id}:`, error);
+    console.error("Error rejecting property submission:", error);
     throw error;
   }
 }

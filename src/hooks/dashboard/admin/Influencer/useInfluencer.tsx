@@ -48,8 +48,6 @@ export interface InfluencerRow {
 
 // Helper function to map API response to InfluencerRow
 function mapApiInfluencerToRow(apiInfluencer: any): InfluencerRow {
-  console.log("Influencer API Response:", apiInfluencer);
-
   return {
     id: apiInfluencer.id.toString(),
     name: apiInfluencer.name,
@@ -192,11 +190,6 @@ export default function useInfluencer() {
       try {
         // This would use the getInfluencerPerformance service
         // You can implement this based on your needs
-        console.log(
-          "Fetching performance for influencer:",
-          influencerId,
-          params
-        );
 
         // Placeholder - implement based on your performance API
         return {
@@ -225,7 +218,6 @@ export default function useInfluencer() {
     ) => {
       try {
         // This would use the getInfluencerStats service
-        console.log("Fetching stats for influencer:", influencerId, params);
 
         // Placeholder - implement based on your stats API
         return {

@@ -20,20 +20,10 @@ export const filters: FilterConfig[] = [
     ],
     default: "all",
   },
-  {
-    type: "dateRange",
-    label: "تاريخ الانضمام",
-    key: "joinedAt",
-  },
 ];
 
 export const sortConfig: SortConfig = {
-  sortFields: [
-    { label: "الاسم", value: "name" },
-    { label: "الحالة", value: "status" },
-    { label: "تاريخ الانضمام", value: "joinedAt" },
-  ],
-  defaultSort: "name",
+  sortFields: [],
 };
 
 export const columns: TableColumn<ClientRow>[] = [

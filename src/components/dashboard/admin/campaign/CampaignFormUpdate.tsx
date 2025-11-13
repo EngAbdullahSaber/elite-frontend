@@ -130,7 +130,6 @@ export default function CampaignFormUpdate({
           messageContent: data.messageContent!.trim(),
         };
 
-        console.log("Sending UPDATE campaign data:", apiUpdateData);
         await updateCampaign(parseInt(campaignId), apiUpdateData);
         toast.success("تم تحديث الحملة بنجاح");
       } else {
@@ -163,7 +162,6 @@ export default function CampaignFormUpdate({
             ) || [],
         };
 
-        console.log("Sending CREATE campaign data:", createData);
         await createCampaign(createData);
         toast.success("تم إنشاء الحملة بنجاح");
       }
@@ -183,8 +181,6 @@ export default function CampaignFormUpdate({
   }
 
   function onError(errors: FieldErrors<CampaignFormData>) {
-    console.log("Form Errors:", errors);
-
     // For update mode, show minimal errors
     if (campaignId) {
       const essentialErrors = {

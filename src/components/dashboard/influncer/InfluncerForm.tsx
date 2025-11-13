@@ -170,11 +170,6 @@ export default function InfluencerForm({
             fontSize: "14px",
           },
         });
-
-        console.log("🔄 تم تحديث المروج:", {
-          id: influencer.id,
-          ...updateData,
-        });
       } else {
         // Create new influencer
         const createData = {
@@ -198,8 +193,6 @@ export default function InfluencerForm({
             fontSize: "14px",
           },
         });
-
-        console.log("🆕 تم إضافة مروج جديد:", createData);
       }
 
       // Call success callback if provided

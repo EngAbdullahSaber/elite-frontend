@@ -20,7 +20,6 @@ import {
 export default function ShortLinksDataViewDataView() {
   const { getRows } = useShortLinks();
 
-  console.log(getRows);
   return (
     <DataView<ShortLinkRow>
       columns={shortLinkColumns}

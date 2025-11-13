@@ -153,9 +153,6 @@ export default function AgentDashboardPage() {
   const stats = transformStats(dashboardData.stats);
   const chartData = calculateChartData(dashboardData.recentAppointments);
 
-  console.log("Dashboard Data:", dashboardData);
-  console.log("Chart Data:", chartData);
-
   return (
     <>
       <DashboardHeaderTitle path={["لوحة الوسيط"]} />

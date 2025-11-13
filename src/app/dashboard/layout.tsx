@@ -34,8 +34,8 @@ export default function DashboardLayout({
       try {
         setIsLoading(true);
 
-        // Get user data from localStorage
-        const userData = localStorage.getItem("user");
+        // Get user data from sessionStorage
+        const userData = sessionStorage.getItem("user");
 
         if (!userData) {
           // No user data found, redirect to login
@@ -59,9 +59,7 @@ export default function DashboardLayout({
         // Check if current path matches the user's dashboard
         if (!pathname.startsWith(userDashboard)) {
           // User is trying to access wrong dashboard, redirect to their correct dashboard
-          console.log(
-            `Redirecting ${userRole} user from ${pathname} to ${userDashboard}`
-          );
+
           router.push(userDashboard);
           return;
         }

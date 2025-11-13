@@ -33,7 +33,6 @@ export default function PropertySubmissionsDataView({
 
   // Handle data updates and pass to parent component
   const handleDataUpdate = (data: any[], filters: Record<string, any>) => {
-    console.log("DataView received update:", data.length, "rows"); // Debug log
     if (onDataUpdate) {
       onDataUpdate(data, filters);
     }

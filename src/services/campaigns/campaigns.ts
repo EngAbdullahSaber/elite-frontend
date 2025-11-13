@@ -177,8 +177,7 @@ export async function getCampaignById(
     });
 
     // Debug: Log the response to see the actual structure
-    console.log("API Response:", response.data);
-
+ 
     // Try different response structures
     return response.data.data || response.data.record || response.data;
   } catch (error) {

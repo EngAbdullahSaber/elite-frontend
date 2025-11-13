@@ -388,7 +388,7 @@ export default function BasicInfoForm({
         />
 
         {/* User Type */}
-        <SelectInput
+        {/* <SelectInput
           name="userType"
           label="نوع المستخدم"
           value={watch("userType")}
@@ -398,11 +398,10 @@ export default function BasicInfoForm({
           options={[
             { label: "عميل", value: "customer" },
             { label: "وسيط", value: "agent" },
-            { label: "مسوق", value: "marketer" },
           ]}
           error={errors.userType?.message}
           className="col-span-12 md:col-span-12"
-        />
+        /> */}
 
         {/* Additional Documents */}
         <div className="col-span-12 md:col-span-6">

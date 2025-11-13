@@ -41,7 +41,6 @@ export function getCityActionsMenu(
           cityId={row.id}
           cityName={row.name}
           onConfirm={() => {
-            console.log("Deleted city", row.id);
             onClose?.();
           }}
           onCancel={() => onClose?.()}

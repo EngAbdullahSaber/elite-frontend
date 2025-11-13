@@ -61,7 +61,6 @@ export default function FooterLogoSection() {
 
   // Generate social links from API data
   const getSocialLinks = (): SocialLink[] => {
-    console.log(footerSettings);
     if (!footerSettings) {
       // Fallback social links
       return [

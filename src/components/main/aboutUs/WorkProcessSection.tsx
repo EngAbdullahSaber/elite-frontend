@@ -81,8 +81,7 @@ const WorkProcessSection: React.FC<WorkProcessSectionProps> = ({
 
     fetchData();
   }, [pageId, sectionId]);
-  console.log(sectionData);
-  // Default image mapping based on step number
+   // Default image mapping based on step number
   const getStepImage = (stepNumber: number): string => {
     const imageMap: { [key: number]: string } = {
       1: "/main/about/work-process-icon-1.png",

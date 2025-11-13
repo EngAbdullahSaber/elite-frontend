@@ -320,8 +320,6 @@ export default function PrivacyPolicyForm() {
         privacyHtml: completeHtml,
       };
 
-      console.log("Updating site settings with complete HTML:", updateData);
-
       // Update the site settings
       await updateSiteSettings(updateData);
 
@@ -336,8 +334,6 @@ export default function PrivacyPolicyForm() {
           fontSize: "14px",
         },
       });
-
-      console.log("Privacy policy updated successfully:", values);
     } catch (error: any) {
       console.error("Error updating site settings:", error);
 

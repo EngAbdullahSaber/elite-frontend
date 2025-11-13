@@ -105,9 +105,7 @@ export default function DataView<T = Record<string, any>>({
 
   // Calculate page count based on API data
   const pageCount = Math.ceil(totalRecords / perPage);
-  console.log(pageCount);
-  console.log(totalRecords);
-  console.log(perPage);
+
   return (
     <>
       <FilterContainer

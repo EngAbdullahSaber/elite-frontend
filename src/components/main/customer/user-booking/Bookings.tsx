@@ -91,8 +91,7 @@ export default function Bookings() {
     const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
     const handleCancel = (id: string) => {
-        console.log('canceled logic here')
-    };
+     };
 
     const handleActiveTab = (tab: BookingStatus) => {
         setActiveTab(tab);

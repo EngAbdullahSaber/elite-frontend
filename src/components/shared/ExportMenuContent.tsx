@@ -46,10 +46,7 @@ export default function ExportMenuContent({
       exportParams.limit = maxRows >= 10000 ? "all" : maxRows;
     }
 
-    console.log("Exporting module with params:", exportParams);
-
     const result = await exportModule(exportParams);
-    console.log("Export module result:", result);
 
     // Check if result is a Blob (file) or a regular response
     if (result instanceof Blob) {

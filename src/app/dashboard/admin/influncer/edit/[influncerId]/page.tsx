@@ -21,7 +21,6 @@ export default function EditInfluencerPage({ params }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  console.log(influncerId);
   useEffect(() => {
     fetchInfluencer();
   }, [influncerId]);

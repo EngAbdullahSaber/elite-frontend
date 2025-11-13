@@ -56,8 +56,7 @@ export async function getClients(
     page?: number;
     limit?: number;
     userType?: string; // 'customer' for clients
-    sortBy?: string;
-    sortOrder?: "ASC" | "DESC";
+
     search?: string;
     verificationStatus?: string;
     isActive?: boolean;
@@ -204,8 +203,6 @@ export async function getCustomers(
   params?: {
     page?: number;
     limit?: number;
-    sortBy?: string;
-    sortOrder?: "ASC" | "DESC";
     search?: string;
     verificationStatus?: string;
     isActive?: boolean;

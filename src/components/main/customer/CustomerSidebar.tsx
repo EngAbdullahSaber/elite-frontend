@@ -44,8 +44,7 @@ export default function CustomerSidebar() {
         setLoading(true);
         setError(null);
         const response = await GetProfile();
-        console.log("Profile data:", response.data); // Debug log
-        setProfile(response);
+         setProfile(response);
       } catch (err) {
         console.error("Error fetching user profile:", err);
         setError("فشل في تحميل بيانات المستخدم");

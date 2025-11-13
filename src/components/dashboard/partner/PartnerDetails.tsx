@@ -21,9 +21,13 @@ import {
   FaProjectDiagram,
   FaLink,
   FaBullhorn,
+  FaCode,
+  FaCopy,
 } from "react-icons/fa";
 import { formatDate } from "@/utils/date";
 import FallbackImage from "@/components/shared/FallbackImage";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 type Props = {
   partner: Partner;
@@ -31,6 +35,8 @@ type Props = {
 };
 
 export default function PartnerDetails({ partner, performance }: Props) {
+  const [copiedUrl, setCopiedUrl] = useState(false);
+
   // Use performance data if available, otherwise use placeholder data
   const metrics = performance?.metrics || {
     visits: 0,
@@ -39,7 +45,27 @@ export default function PartnerDetails({ partner, performance }: Props) {
     conversionRate: "0.00%",
   };
 
-  const campaign = partner.campaign;
+  const handleCopyShareUrl = () => {
+    if (partner.shareUrl) {
+      navigator.clipboard.writeText(partner.shareUrl);
+      setCopiedUrl(true);
+      toast.success("تم نسخ رابط المشاركة", {
+        duration: 3000,
+        position: "top-center",
+      });
+
+      setTimeout(() => setCopiedUrl(false), 2000);
+    }
+  };
+
+  const truncateUrl = (url: string, maxLength: number = 40) => {
+    if (!url) return "";
+    if (url.length <= maxLength) return url;
+
+    const start = url.substring(0, maxLength / 2 - 3);
+    const end = url.substring(url.length - maxLength / 2 + 3);
+    return `${start}...${end}`;
+  };
 
   return (
     <div className="grid grid-cols-1 2xl:grid-cols-6 gap-4 lg:gap-6 items-stretch">
@@ -50,14 +76,14 @@ export default function PartnerDetails({ partner, performance }: Props) {
             <div className="relative w-fit mx-auto">
               <FallbackImage
                 src={null} // Partners don't have profile images in the data
-                alt={partner.name}
+                alt={partner?.name}
                 width={80}
                 height={80}
                 className="rounded-full w-20 h-20 object-cover border bg-gray-100 flex items-center justify-center"
                 fallback={
                   <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
                     <span className="text-blue-600 text-xl font-semibold">
-                      {partner.name.charAt(0).toUpperCase()}
+                      {partner?.name?.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 }
@@ -65,7 +91,7 @@ export default function PartnerDetails({ partner, performance }: Props) {
             </div>
 
             <h5 className="text-xl font-semibold mt-5 text-center">
-              {partner.name}
+              {partner?.name}
             </h5>
 
             <div className="flex items-center justify-center border-b border-dashed py-2">
@@ -88,37 +114,91 @@ export default function PartnerDetails({ partner, performance }: Props) {
           {/* Partner Info */}
           <div className="mt-6 space-y-4">
             <IconDetail
-              icon={
-                <FaClipboardList className="text-[var(--primary)] w-6 h-6" />
-              }
-              label="نوع الشريك"
-              value={partnerKindMap[partner.kind]}
-            />
-            <IconDetail
-              icon={<FaLink className="text-[var(--secondary-500)] w-6 h-6" />}
+              icon={<FaCode className="text-[var(--secondary-500)] w-6 h-6" />}
               label="كود الإحالة"
               value={partner.referralCode}
               valueClassName="font-mono text-sm"
             />
-            {partner.platform && (
-              <IconDetail
-                icon={<FaBullhorn className="text-blue-600 w-6 h-6" />}
-                label="المنصة"
-                value={
-                  partnerPlatformMap[
-                    partner.platform as keyof typeof partnerPlatformMap
-                  ] || partner.platform
-                }
-              />
-            )}
-            {campaign && (
-              <IconDetail
-                icon={<FaCalendarAlt className="text-green-600 w-6 h-6" />}
-                label="الحملة"
-                value={campaign.name}
-              />
-            )}
+
+            {/* Share URL Section */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-gray-700">
+                <FaLink className="text-[var(--secondary-500)] w-6 h-6" />
+                <span className="text-sm font-medium">رابط التسويق</span>
+              </div>
+
+              {partner.shareUrl ? (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <a
+                        href={partner.shareUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline break-all font-mono"
+                        title={partner.shareUrl}
+                      >
+                        {truncateUrl(partner.shareUrl)}
+                      </a>
+                    </div>
+                    <button
+                      onClick={handleCopyShareUrl}
+                      className="flex-shrink-0 p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="نسخ الرابط"
+                    >
+                      <FaCopy
+                        className={`w-4 h-4 ${
+                          copiedUrl ? "text-green-500" : ""
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Click to copy hint */}
+                  <div className="mt-2 flex items-center gap-1">
+                    <span className="text-xs text-gray-500">
+                      انقر فوق الرابط لفتحه أو زر النسخ
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <p className="text-sm text-gray-500 text-center">
+                    لا يوجد رابط مشاركة متاح
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Additional Actions */}
+          {partner.shareUrl && (
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="space-y-2">
+                <p className="text-xs text-gray-600 text-center">
+                  شارك هذا الرابط مع عملائك لتتبع الزيارات والتحويلات
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCopyShareUrl}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                  >
+                    <FaCopy className="w-4 h-4" />
+                    {copiedUrl ? "تم النسخ!" : "نسخ الرابط"}
+                  </button>
+                  <a
+                    href={partner.shareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                  >
+                    <FaLink className="w-4 h-4" />
+                    فتح الرابط
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
         </DashboardSectionCard>
       </div>
 
@@ -146,18 +226,6 @@ export default function PartnerDetails({ partner, performance }: Props) {
               value={metrics.appointments}
               label="المواعيد"
             />
-            <CardInfo
-              icon={<FaProjectDiagram className="text-blue-600 w-10 h-10" />}
-              value={metrics.conversionRate}
-              label="معدل التحويل"
-            />
-            {campaign && (
-              <CardInfo
-                icon={<FaBullhorn className="text-purple-600 w-10 h-10" />}
-                value={campaignStatusMap[campaign.status] || campaign.status}
-                label="حالة الحملة"
-              />
-            )}
           </div>
 
           {/* Partner Details */}
@@ -180,16 +248,6 @@ export default function PartnerDetails({ partner, performance }: Props) {
                 valueClassName="font-mono text-sm"
               />
               <InfoBlock
-                label="المنصة"
-                value={
-                  partner.platform
-                    ? partnerPlatformMap[
-                        partner.platform as keyof typeof partnerPlatformMap
-                      ] || partner.platform
-                    : "غير محدد"
-                }
-              />
-              <InfoBlock
                 label="تاريخ التحديث"
                 value={formatDate(partner.updatedAt)}
               />
@@ -201,66 +259,27 @@ export default function PartnerDetails({ partner, performance }: Props) {
                   partnerStatusMap[partner.isActive ? "active" : "inactive"]
                 }
               />
-              {campaign && (
-                <>
-                  <InfoBlock label="الحملة" value={campaign.name} />
-                  <InfoBlock
-                    label="حالة الحملة"
-                    value={
-                      campaignStatusMap[campaign.status] || campaign.status
-                    }
-                  />
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Campaign Details Section */}
-          {campaign && (
-            <div className="mt-8 pt-6 border-t border-dashed">
-              <h4 className="text-lg font-semibold mb-4">تفاصيل الحملة</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <InfoBlock label="اسم الحملة" value={campaign.name} />
-                <InfoBlock label="عنوان الحملة" value={campaign.title} />
-                <InfoBlock
-                  label="القناة المستهدفة"
-                  value={
-                    targetChannelMap[campaign.targetChannel] ||
-                    campaign.targetChannel
-                  }
-                />
-                <InfoBlock
-                  label="الجمهور المستهدف"
-                  value={campaign.targetAudience}
-                />
-                <InfoBlock label="نوع التشغيل" value={campaign.runType} />
-                <InfoBlock
-                  label="الحالة"
-                  value={campaignStatusMap[campaign.status] || campaign.status}
-                />
-                <InfoBlock
-                  label="تاريخ البدء"
-                  value={formatDate(campaign.startDate)}
-                />
-                <InfoBlock
-                  label="تاريخ الانتهاء"
-                  value={formatDate(campaign.endDate)}
-                />
-                {campaign.runFrequency && (
-                  <InfoBlock label="التكرار" value={campaign.runFrequency} />
-                )}
-              </div>
-              {campaign.description && (
-                <div className="mt-4">
-                  <InfoBlock
-                    label="وصف الحملة"
-                    value={campaign.description}
-                    valueClassName="text-gray-700 leading-relaxed"
-                  />
+              {/* Share URL in details section */}
+              {partner.shareUrl && (
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">
+                    رابط المشاركة:
+                  </span>
+                  <div className="bg-gray-50 p-2 rounded border">
+                    <a
+                      href={partner.shareUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline break-all font-mono block"
+                      title={partner.shareUrl}
+                    >
+                      {truncateUrl(partner.shareUrl, 30)}
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
-          )}
+          </div>
         </DashboardSectionCard>
       </div>
     </div>

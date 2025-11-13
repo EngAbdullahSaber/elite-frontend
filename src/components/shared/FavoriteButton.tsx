@@ -10,10 +10,14 @@ interface FavoriteButtonProps {
   property: Property;
   size?: "sm" | "md" | "lg";
   showText?: boolean;
+  flag?: any;
+  setFlag?: any;
 }
 
 export default function FavoriteButton({
   property,
+  flag,
+  setFlag,
   size = "md",
   showText = false,
 }: FavoriteButtonProps) {
@@ -35,7 +39,10 @@ export default function FavoriteButton({
     lg: "w-6 h-6",
   };
 
-  const handleToggleFavorite = async () => {
+  const handleToggleFavorite = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault(); // Prevent default behavior
+
     if (loading) return;
 
     // Optimistic update - update UI immediately
@@ -50,10 +57,7 @@ export default function FavoriteButton({
         note: "property favourite",
       };
 
-      console.log("Toggling favorite for property:", property.id);
-
       const response = await toggleFavorite(favoriteData);
-      console.log("Toggle favorite response:", response);
 
       // Handle different API response structures
       if (response) {
@@ -85,6 +89,7 @@ export default function FavoriteButton({
           fontSize: "14px",
         },
       });
+      setFlag(!flag);
     } catch (error: any) {
       console.error("Error toggling favorite:", error);
 

@@ -326,26 +326,19 @@ export default function PropertyRequestForm({
         }
       }
 
-      console.log(
-        `${
-          isEdit ? "🔄 Updating" : "🆕 Creating"
-        } property submission with FormData`
-      );
+      
 
       // Log FormData contents for debugging
       for (const [key, value] of formData.entries()) {
         if (value instanceof File) {
-          console.log(`📎 ${key}:`, value.name, value.type, value.size);
-        } else {
-          console.log(`📝 ${key}:`, value);
-        }
+         } else {
+         }
       }
 
       let result;
       if (isEdit && requestId) {
         result = await updatePropertySubmission(requestId, formData);
-        console.log("✅ Property submission updated successfully:", result);
-
+ 
         // Show success toast for update
         toast.success("تم تحديث طلب العقار بنجاح", {
           duration: 4000,
@@ -365,8 +358,7 @@ export default function PropertyRequestForm({
         }, 2000);
       } else {
         result = await createPropertySubmission(formData);
-        console.log("✅ Property submission created successfully:", result);
-
+ 
         // Show success toast for create
         toast.success("تم إنشاء طلب العقار بنجاح", {
           duration: 4000,

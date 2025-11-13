@@ -147,31 +147,27 @@ export default function FaqTabsForm() {
         const updatedGroup = await updateGroup(group.id, {
           title: group.title,
         });
-        console.log("Updated group:", updatedGroup);
-
+ 
         // Handle items for existing group
         for (const item of group.items) {
           if (item.id) {
             // For existing items, we only need to handle deletion (done in EditFAQSection)
             // Updates are handled separately if you add updateItem function
-            console.log("Existing item:", item);
-          } else {
+           } else {
             // Create new item for existing group
             const newItem = await createItem({
               groupId: group.id,
               question: item.question,
               answer: item.answer,
             });
-            console.log("Created new item:", newItem);
-          }
+           }
         }
       } else {
         // Create new group
         const newGroup = await createGroup({
           title: group.title,
         });
-        console.log("Created new group:", newGroup);
-
+ 
         // Create items for new group
         for (const item of group.items) {
           const newItem = await createItem({
@@ -179,8 +175,7 @@ export default function FaqTabsForm() {
             question: item.question,
             answer: item.answer,
           });
-          console.log("Created item for new group:", newItem);
-        }
+         }
       }
     }
   };

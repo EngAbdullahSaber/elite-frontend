@@ -139,8 +139,7 @@ export default function PasswordSection() {
       setSuccess(true);
       setForm({ current: "", new: "" });
 
-      console.log("تم تحديث كلمة المرور بنجاح");
-    } catch (error: any) {
+     } catch (error: any) {
       console.error("Error changing password:", error);
 
       // Handle specific error cases

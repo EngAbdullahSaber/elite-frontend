@@ -21,8 +21,7 @@ export default function StandaloneDownloadContent({
 
   const toggle = () => setIsOpen(!isOpen);
   const close = () => setIsOpen(false);
-  console.log(currentData);
-  console.log(filters);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {

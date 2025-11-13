@@ -107,8 +107,7 @@ export default function EditClientPage({ params }: Props) {
       </div>
     );
   }
-  console.log(formClient);
-  return (
+   return (
     <div>
       <DashboardHeaderTitle
         path={["العملاء", `تعديل بيانات العميل: ${client.fullName}`]}

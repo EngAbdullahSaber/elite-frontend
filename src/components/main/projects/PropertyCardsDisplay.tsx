@@ -90,7 +90,7 @@ export default function PropertyCardsDisplay({
                     : "السعر غير متوفر"}
                 </div>
               </div>
-              {localStorage.getItem("user") && (
+              {sessionStorage.getItem("user") && (
                 <FavoriteButton property={property} />
               )}
               {/* Property Details */}

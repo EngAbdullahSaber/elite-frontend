@@ -276,8 +276,6 @@ export async function getPropertyById(
       signal,
     });
 
-    console.log("Property API Response:", response.data);
-
     return response.data.data || response.data.record || response.data;
   } catch (error) {
     console.error(`Error fetching property ${id}:`, error);
@@ -312,9 +310,10 @@ export async function updateProperty(
 ): Promise<Property> {
   try {
     const response = await api.patch(`/properties/${id}`, data, {
-      signal,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
-
     return response.data.data || response.data;
   } catch (error) {
     console.error(`Error updating property ${id}:`, error);

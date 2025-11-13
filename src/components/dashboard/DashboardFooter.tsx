@@ -54,7 +54,6 @@ export default function DashboardFooter() {
     fetchFooterSettings();
   }, []);
   const getSocialLinks = (): SocialLink[] => {
-    console.log(footerSettings);
     if (!footerSettings) {
       // Fallback social links
       return [

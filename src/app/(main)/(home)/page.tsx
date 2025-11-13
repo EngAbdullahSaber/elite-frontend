@@ -10,21 +10,20 @@ import ServicesSection from "@/components/main/home/ServicesSection";
 import TestimonialSection from "@/components/main/home/TestimonialSection";
 
 export const metadata = {
-  description: 'اكتشف أفضل العقارات والخدمات العقارية عبر منصة مراسل جدة العقاري. تصفّح المشاريع، اقرأ آراء العملاء، وتواصل معنا لتحقيق أهدافك العقارية.',
+  description:
+    "اكتشف أفضل العقارات والخدمات العقارية عبر منصة مراسل جدة العقاري. تصفّح المشاريع، اقرأ آراء العملاء، وتواصل معنا لتحقيق أهدافك العقارية.",
 };
 
-
 export default function Home() {
-
   return (
     <div className="">
       <HeroSection />
       <CategorySection />
       <ListedPropertySection />
-      <ServicesSection />
-      <RecentlyAddedPropertySection />
+      {/* <ServicesSection /> */}
+      {/* <RecentlyAddedPropertySection /> */}
       <CallToActionSection />
-      <TestimonialSection />
+      {/* <TestimonialSection /> */}
       <ClientsSection />
       <CtaSection />
       <FaqSection />

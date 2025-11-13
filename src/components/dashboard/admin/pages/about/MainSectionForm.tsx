@@ -59,7 +59,6 @@ export default function MainSectionForm({ control }: MainSectionFormProps) {
 
       if (targetSection) {
         setMainSection(targetSection);
-        console.log("Found main section:", targetSection);
       } else {
         console.warn(`Section with ID ${MAIN_SECTION_ID} not found`);
         toast.error("لم يتم العثور على القسم الرئيسي");
@@ -87,7 +86,6 @@ export default function MainSectionForm({ control }: MainSectionFormProps) {
 
       if (targetSection) {
         setMainSection(targetSection);
-        console.log("Found main section by key:", targetSection);
       } else {
         console.warn('Section with key "استكشاف العقارات" not found');
         toast.error("لم يتم العثور على القسم الرئيسي");
