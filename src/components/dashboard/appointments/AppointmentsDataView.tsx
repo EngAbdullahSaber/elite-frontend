@@ -125,65 +125,65 @@ export default function AppointmentsDataView({
           },
         ];
 
-        // Only show status change for admin or if user is the agent/client of the appointment
-        const canChangeStatus =
-          role === "admin" ||
-          (role === "agent" && finalAgentId === row.agent?.id) ||
-          (role === "client" && finalClientId === row.client?.id);
+        // // Only show status change for admin or if user is the agent/client of the appointment
+        // const canChangeStatus =
+        //   role === "admin" ||
+        //   (role === "agent" && finalAgentId === row.agent?.id) ||
+        //   (role === "client" && finalClientId === row.client?.id);
 
-        if (canChangeStatus) {
-          base.push({
-            label: "تغيير الحالة",
-            type: "primary" as ActionType,
-            icon: <FaExchangeAlt />,
-            child: (
-              <AppointmentStatusToggle
-                appointmentId={row.id}
-                currentStatus={row.status}
-                onConfirm={() => {
-                  onClose?.();
-                }}
-                onCancel={() => {}}
-              />
-            ),
-          });
-        }
+        // if (canChangeStatus) {
+        //   base.push({
+        //     label: "تغيير الحالة",
+        //     type: "primary" as ActionType,
+        //     icon: <FaExchangeAlt />,
+        //     child: (
+        //       <AppointmentStatusToggle
+        //         appointmentId={row.id}
+        //         currentStatus={row.status}
+        //         onConfirm={() => {
+        //           onClose?.();
+        //         }}
+        //         onCancel={() => {}}
+        //       />
+        //     ),
+        //   });
+        // }
 
-        if (role === "admin") {
-          base.splice(1, 0, {
-            label: row.agent ? "تغيير الوسيط" : "تعيين وسيط",
-            type: "primary" as ActionType,
-            icon: <FaUserEdit />,
-            child: (
-              <AgentAssignmentToggle
-                users={agents}
-                label="وسيط"
-                appointmentId={row.id}
-                selectedUser={row.agent}
-                onConfirm={(agent) => {
-                  onClose?.();
-                }}
-              />
-            ),
-          });
+        // if (role === "admin") {
+        //   base.splice(1, 0, {
+        //     label: row.agent ? "تغيير الوسيط" : "تعيين وسيط",
+        //     type: "primary" as ActionType,
+        //     icon: <FaUserEdit />,
+        //     child: (
+        //       <AgentAssignmentToggle
+        //         users={agents}
+        //         label="وسيط"
+        //         appointmentId={row.id}
+        //         selectedUser={row.agent}
+        //         onConfirm={(agent) => {
+        //           onClose?.();
+        //         }}
+        //       />
+        //     ),
+        //   });
 
-          if (row.status === "completed" && !row.isPaid) {
-            base.push({
-              label: "إرفاق إثبات الدفع",
-              type: "primary" as ActionType,
-              icon: <FaExchangeAlt />,
-              child: (
-                <AppointmentProofUploadToggle
-                  appointmentId={row.id}
-                  onConfirm={() => {
-                    onClose?.();
-                  }}
-                  onCancel={() => {}}
-                />
-              ),
-            });
-          }
-        }
+        //   if (row.status === "completed" && !row.isPaid) {
+        //     base.push({
+        //       label: "إرفاق إثبات الدفع",
+        //       type: "primary" as ActionType,
+        //       icon: <FaExchangeAlt />,
+        //       child: (
+        //         <AppointmentProofUploadToggle
+        //           appointmentId={row.id}
+        //           onConfirm={() => {
+        //             onClose?.();
+        //           }}
+        //           onCancel={() => {}}
+        //         />
+        //       ),
+        //     });
+        //   }
+        // }
 
         return base;
       },

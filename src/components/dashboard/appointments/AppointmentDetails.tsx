@@ -127,23 +127,6 @@ export default function AppointmentDetails({
               />
             </div>
           </div>
-          {appointment.expectedProfit !== undefined && (
-            <IconDetail
-              icon={<MdAttachMoney className="text-[var(--primary)] w-6 h-6" />}
-              label={
-                status === "completed"
-                  ? "الربح"
-                  : status === "pending" ||
-                    status === "assigned" ||
-                    status === "confirmed" ||
-                    status === "in_progress"
-                  ? "الربح المتوقع"
-                  : "الربح"
-              }
-              value={`${appointment.expectedProfit.toLocaleString()} ريال`}
-              className="font-semibold text-green-600"
-            />
-          )}
 
           {reviewStars && (
             <IconDetail
@@ -189,27 +172,7 @@ export default function AppointmentDetails({
             value={bookingStatusMap[status]}
             className={`${bookingStatusStyle[status]} block px-3 py-1 !rounded-full text-sm font-medium mt-1`}
           />
-          <div className="flex gap-2 items-center flex-wrap">
-            <div className="flex-1">
-              <AppointmentStatusControl
-                appointmentId={id}
-                currentStatus={status}
-              />
-            </div>
-            {!appointment.isPaid && (
-              <AppointmentProofUploadControl appointmentId={appointment.id} />
-            )}
-            {role === "agent" &&
-              status === "completed" &&
-              !agentReviewStars && (
-                <div className="flex-1">
-                  <ReviewBookingButton
-                    bookingId={String(appointment.id)}
-                    className="agent-review"
-                  />
-                </div>
-              )}
-          </div>
+          <div className="flex gap-2 items-center flex-wrap"></div>
         </Card>
       </div>
       <div className="h-full 2xl:col-span-4 flex flex-col gap-4 lg:gap-6 ">
@@ -278,7 +241,7 @@ export default function AppointmentDetails({
                 <UserChanger
                   appointmentId={appointment.id}
                   showSelected={false}
-                  initialUserId={agent.id}
+                  initialUserId={agent?.id}
                   users={agents}
                   label="وسيط"
                 />
@@ -335,7 +298,6 @@ export default function AppointmentDetails({
             </div>
           </Card>
         </div>
-        <AppointmentNotesCard initailNotes="" />
       </div>
       {appointment.status === "completed" && (
         <div className="2xl:col-span-6">

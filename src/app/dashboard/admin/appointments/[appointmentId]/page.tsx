@@ -5,7 +5,6 @@ import Link from "next/link";
 import { BiGroup } from "react-icons/bi";
 import DashboardHeaderTitle from "@/components/dashboard/DashboardHeaderTitle";
 import AppointmentDetails from "@/components/dashboard/appointments/AppointmentDetails";
-import DownloadContent from "@/components/shared/DownloadContent";
 import { getAppointmentById } from "@/services/appointments/appointments";
 
 type Props = {
@@ -32,7 +31,6 @@ export default function AppointmentDetailsPage({ params }: Props) {
 
       const appointmentData = await getAppointmentById(parseInt(appointmentId));
 
- 
       // Map API response to AppointmentRow type
       const mappedAppointment = {
         id: appointmentData.id.toString(),
@@ -78,7 +76,7 @@ export default function AppointmentDetailsPage({ params }: Props) {
         proofFiles: appointmentData.proofFiles || [],
       };
 
-       setAppointment(mappedAppointment);
+      setAppointment(mappedAppointment);
     } catch (err) {
       console.error("❌ Error fetching appointment:", err);
       setError("فشل في تحميل بيانات الموعد");
@@ -98,7 +96,6 @@ export default function AppointmentDetailsPage({ params }: Props) {
       <>
         <DashboardHeaderTitle path={["المواعيد", "جاري التحميل..."]}>
           <div className="flex gap-4 flex-wrap">
-            <DownloadContent text="تحميل المعلومات" disabled />
             <Link className="btn-primary" href="/dashboard/admin/appointments">
               <BiGroup /> عرض جميع المواعيد
             </Link>
@@ -156,7 +153,6 @@ export default function AppointmentDetailsPage({ params }: Props) {
       <>
         <DashboardHeaderTitle path={["المواعيد", `تفاصيل الموعد - غير موجود`]}>
           <div className="flex gap-4 flex-wrap">
-            <DownloadContent text="تحميل المعلومات" disabled />
             <Link className="btn-primary" href="/dashboard/admin/appointments">
               <BiGroup /> عرض جميع المواعيد
             </Link>
@@ -188,7 +184,6 @@ export default function AppointmentDetailsPage({ params }: Props) {
         path={["المواعيد", `تفاصيل الموعد - ${appointment.project.title}`]}
       >
         <div className="flex gap-4 flex-wrap">
-          <DownloadContent text="تحميل المعلومات" />
           <Link className="btn-primary" href="/dashboard/admin/appointments">
             <BiGroup /> عرض جميع المواعيد
           </Link>

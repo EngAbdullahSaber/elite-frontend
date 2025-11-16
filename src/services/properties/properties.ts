@@ -218,14 +218,14 @@ export async function getProperties(
 
     // Filters
     if (params.search) queryParams.append("search", params.search);
-    if (params.type) queryParams.append("type", params.type);
+    if (params.propertyTypeId)
+      queryParams.append("propertyTypeId", params.propertyTypeId);
     if (params.city) queryParams.append("city", params.city);
     if (params.priceMin)
       queryParams.append("priceMin", params.priceMin.toString());
     if (params.priceMax)
       queryParams.append("priceMax", params.priceMax.toString());
-    if (params.propertyTypeId)
-      queryParams.append("propertyTypeId", params.propertyTypeId.toString());
+
     if (params.cityId) queryParams.append("cityId", params.cityId.toString());
     if (params.areaId) queryParams.append("areaId", params.areaId.toString());
     if (params.accessType) queryParams.append("accessType", params.accessType);

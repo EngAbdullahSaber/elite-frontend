@@ -5,7 +5,7 @@ import InfoCell from "../shared/InfoCell";
 import Popup from "../shared/Popup";
 import { MdClose } from "react-icons/md";
 import UserAssignmentToggle from "./UserAssignmentToggle";
-import UserAssignmentTogglePagination from "./UserAssignmentTogglePaginationMultiSelect";
+import UserAssignmentTogglePagination from "./UserAssignmentTogglePagination";
 
 type User = {
   id: number;

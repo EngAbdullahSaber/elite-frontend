@@ -59,8 +59,8 @@ export default function AppointmentsDataViewRequests({
         let perPage = limit;
 
         // Adjust based on your API response structure
-        if (response.pendingRequests) {
-          data = response.pendingRequests;
+        if (response?.pending?.data) {
+          data = response.pending?.data;
           totalCount = response.totalCount || response.total || data.length;
           currentPage = response.currentPage || response.page || page;
           perPage = response.perPage || response.limit || limit;
@@ -169,7 +169,7 @@ export default function AppointmentsDataViewRequests({
         // For "client" column
         client: miniClient,
         // For "status" column
-        status: appointment?.status || item.status,
+        status: item.status,
         // For "reviewStars" column (not available in API)
         reviewStars: undefined,
         // For "isPaid" column (not available in API)

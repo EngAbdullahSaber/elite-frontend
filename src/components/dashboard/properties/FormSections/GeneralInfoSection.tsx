@@ -189,22 +189,6 @@ export default function GeneralInfoSection({
     }
   };
 
-  const handleCityChange = (city: City | undefined) => {
-    if (city) {
-      setSelectedCityId(city.id);
-      setAreas([]);
-      setAreaSearch("");
-    } else {
-      setSelectedCityId("");
-      setAreas([]);
-      setAreaSearch("");
-    }
-  };
-
-  const handleAreaChange = (area: Area | undefined) => {
-    // This will be handled by the form control
-  };
-
   // Format cities for UserChangerPagination
   const formatCities = (cities: City[]) =>
     cities.map((city) => ({
@@ -311,15 +295,14 @@ export default function GeneralInfoSection({
                 initialUserId={field.value ? parseInt(field.value) : undefined}
                 label="المدينة"
                 onChange={(city) => {
+                  // Handle both cases: when city is selected and when it's cleared
                   if (city) {
-                    field.onChange(city.id.toString());
-                    handleCityChange({
-                      id: city.id.toString(),
-                      name: city.name,
-                    });
+                    const cityId = city.id.toString();
+                    field.onChange(cityId);
+                    setSelectedCityId(cityId);
                   } else {
                     field.onChange("");
-                    handleCityChange(undefined);
+                    setSelectedCityId("");
                   }
                 }}
                 hasMore={cityPagination.hasNextPage}

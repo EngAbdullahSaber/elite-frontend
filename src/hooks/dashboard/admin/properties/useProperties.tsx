@@ -33,7 +33,7 @@ export default function useProperties() {
         const page = parseInt(searchParams.get("page") || "1", 10);
         const limit = parseInt(searchParams.get("perPage") || "12", 10);
         const search = searchParams.get("search") || undefined;
-        const type = searchParams.get("type") || undefined;
+        const propertyTypeId = searchParams.get("propertyTypeId") || undefined;
         const city = searchParams.get("city") || undefined;
         const priceMin = searchParams.get("priceMin")
           ? parseInt(searchParams.get("priceMin")!)
@@ -47,7 +47,7 @@ export default function useProperties() {
           page,
           limit,
           search,
-          type,
+          propertyTypeId,
           city,
           priceMin,
           priceMax,

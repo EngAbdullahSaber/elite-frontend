@@ -13,7 +13,7 @@ import { useCities } from "@/hooks/dashboard/admin/cities/useCities";
 type PriceRange = { min: number; max: number };
 type Filters = {
   search: string;
-  type: string;
+  propertyTypeId: string;
   city: string;
   priceRange: PriceRange;
   [key: string]: any;
@@ -43,7 +43,7 @@ export default function ProjectsFilterPanel({
     const params = new URLSearchParams(searchParams.toString());
     return {
       search: params.get("search") ?? "",
-      type: params.get("type") ?? "",
+      propertyTypeId: params.get("propertyTypeId") ?? "",
       city: params.get("city") ?? "",
       priceRange: {
         min: Number(searchParams.get("priceMin")) || defaultPriceRange.min,
@@ -166,7 +166,7 @@ export default function ProjectsFilterPanel({
     // Reset all filters to their default values
     setFilters({
       search: "",
-      type: "",
+      propertyTypeId: "",
       city: "",
       priceRange: defaultPriceRange,
     });
@@ -175,7 +175,7 @@ export default function ProjectsFilterPanel({
   const hasActiveFilters = () => {
     return (
       filters.search !== "" ||
-      filters.type !== "" ||
+      filters.propertyTypeId !== "" ||
       filters.city !== "" ||
       filters.priceRange.min !== defaultPriceRange.min ||
       filters.priceRange.max !== defaultPriceRange.max
@@ -185,11 +185,11 @@ export default function ProjectsFilterPanel({
   // Property type options (you might want to fetch these from an API too)
   const propertyTypeOptions = [
     { value: "", label: "جميع أنواع العقارات" },
-    { value: "apartments", label: "شقة" },
-    { value: "villas", label: "فيلا" },
-    { value: "residential-land", label: "اراضى سكنية" },
-    { value: "commercial-land", label: "اراضى تجارية" },
-    { value: "offices", label: "مكاتب إدارية" },
+    { value: "1", label: "شقة" },
+    { value: "2", label: "فيلا" },
+    { value: "4", label: "اراضى سكنية" },
+    { value: "6", label: "اراضى تجارية" },
+    { value: "5", label: "مكاتب إدارية" },
   ];
 
   return (
@@ -213,9 +213,9 @@ export default function ProjectsFilterPanel({
         <li>
           <SelectInput
             label="نوع العقار"
-            name="type"
-            value={filters.type}
-            onChange={(val) => handleFilterChange("type", val)}
+            name="propertyTypeId"
+            value={filters.propertyTypeId}
+            onChange={(val) => handleFilterChange("propertyTypeId", val)}
             options={propertyTypeOptions}
           />
         </li>

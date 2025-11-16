@@ -32,6 +32,7 @@ export type BookingStatus =
   | "no_show";
 
 export type BookingStatusRequest = "pending" | "accepted" | "rejected";
+export type BookingStatusConfirme = "completed" | "expired";
 
 export interface Booking {
   id: string;

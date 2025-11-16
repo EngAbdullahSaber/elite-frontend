@@ -436,3 +436,19 @@ export async function updateAppointmentStatusRequest(
     throw error;
   }
 }
+// POST - Update appointment status
+export async function updateAppointmentStatusFinal(
+  id: number,
+  data: {
+    status: string;
+  }
+): Promise<Appointment> {
+  try {
+    const response = await api.patch(`/appointments/${id}/final-status`, data);
+
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error(`Error updating appointment status ${id}:`, error);
+    throw error;
+  }
+}

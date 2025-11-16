@@ -1,6 +1,5 @@
 "use client";
 import DashboardHeaderTitle from "@/components/dashboard/DashboardHeaderTitle";
-import DownloadList from "@/components/shared/DownloadContent";
 import PropertiesDataView from "@/components/main/projects/PropertiesDataView";
 import Link from "next/link";
 import { BiEditAlt } from "react-icons/bi";

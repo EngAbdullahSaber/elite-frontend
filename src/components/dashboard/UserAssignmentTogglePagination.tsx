@@ -24,7 +24,7 @@ type Props = {
   onSearch?: (search: string) => void;
 };
 
-export default function UserAssignmentTogglePaginationMultiSelect({
+export default function UserAssignmentTogglePagination({
   users,
   selectedUser,
   label = "المستخدم",

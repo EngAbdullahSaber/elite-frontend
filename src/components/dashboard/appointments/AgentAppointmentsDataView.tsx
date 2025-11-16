@@ -7,7 +7,7 @@ import {
 } from "@/constants/dashboard/admin/appointment/contants";
 import { AppointmentRow } from "@/types/dashboard/appointment";
 import { FaExchangeAlt } from "react-icons/fa";
-import AppointmentStatusToggleRequest from "./AppointmentStatusToggleRequest";
+import AgentStatusToggle from "./AgentStatusToggle";
 import {
   ActionType,
   MenuActionItem,
@@ -30,11 +30,10 @@ export default function AgentAppointmentsDataView({
 }: AgentAppointmentsDataViewProps) {
   const appointmentColumns = useAppointmentRequestColumns();
   const role = useRoleFromPath();
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger refresh
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Create a callback to refresh the data
   const refreshAppointmentsData = useCallback(() => {
-    setRefreshTrigger((prev) => prev + 1); // Increment to trigger refresh
+    setRefreshTrigger((prev) => prev + 1);
   }, []);
 
   // Direct method to fetch and transform data
@@ -66,32 +65,22 @@ export default function AgentAppointmentsDataView({
 
       console.log("API Response:", response); // Debug log
 
-      // Handle the nested response structure
+      // Handle the nested response structure - use only confirmed data
       if (response && typeof response === "object") {
         let data: any[] = [];
         let totalCount = 0;
         let currentPage = page;
         let perPage = limit;
 
-        // Use confirmedAppointments directly from the response
+        // Use only confirmed data
         if (
-          response.confirmedAppointments &&
-          Array.isArray(response.confirmedAppointments)
+          response.confirmed?.data &&
+          Array.isArray(response.confirmed.data)
         ) {
-          data = response.confirmedAppointments;
-          totalCount = response.totalCount || response.total || data.length;
-          currentPage = response.currentPage || response.page || page;
-          perPage = response.perPage || response.limit || limit;
-        } else if (Array.isArray(response.data)) {
-          data = response.data;
-          totalCount = response.totalCount || response.total || data.length;
-          currentPage = response.currentPage || response.page || page;
-          perPage = response.perPage || response.limit || limit;
-        } else if (Array.isArray(response)) {
-          data = response;
-          totalCount = data.length;
-          currentPage = 1;
-          perPage = data.length;
+          data = response.confirmed.data;
+          totalCount = response.confirmed.total || 0;
+          currentPage = response.confirmed.page || page;
+          perPage = response.confirmed.limit || limit;
         }
 
         // Transform the data to match AppointmentRow structure
@@ -144,10 +133,10 @@ export default function AgentAppointmentsDataView({
     return appointments.map((appointment) => {
       // Create MiniProject object for the project column
       const miniProject = {
-        id: appointment?.property?.id,
-        title: appointment?.property?.title,
-        type: appointment?.property?.propertyType?.name,
-        image: appointment?.property?.image || null,
+        id: appointment?.appointment?.property?.id,
+        title: appointment?.appointment?.property?.title,
+        type: appointment?.appointment?.property?.propertyType?.name,
+        image: appointment?.appointment?.property?.image || null,
       };
 
       // Create MiniUser objects for agent and client columns
@@ -160,12 +149,12 @@ export default function AgentAppointmentsDataView({
           }
         : undefined;
 
-      const miniClient = appointment?.customer
+      const miniClient = appointment?.appointment?.customer
         ? {
-            id: appointment.customer.id,
-            name: appointment.customer.fullName,
-            email: appointment.customer.email,
-            image: appointment.customer.profilePhotoUrl,
+            id: appointment.appointment.customer.id,
+            name: appointment.appointment.customer.fullName,
+            email: appointment.appointment.customer.email,
+            image: appointment.appointment.customer.profilePhotoUrl,
           }
         : undefined;
 
@@ -174,10 +163,11 @@ export default function AgentAppointmentsDataView({
         id: appointment.id,
         // For "project" column
         project: miniProject,
-        // For "appointmentAt" column - combine date and time
+        // For "appointmentAt" column - combine date and time from appointment object
         appointmentAt:
-          appointment?.appointmentDate && appointment?.startTime
-            ? `${appointment.appointmentDate}T${appointment.startTime}`
+          appointment?.appointment?.appointmentDate &&
+          appointment?.appointment?.startTime
+            ? `${appointment.appointment.appointmentDate}T${appointment.appointment.startTime}`
             : null,
         // For "createdAt" column
         createdAt: appointment.createdAt,
@@ -185,7 +175,7 @@ export default function AgentAppointmentsDataView({
         agent: miniAgent,
         // For "client" column
         client: miniClient,
-        // For "status" column
+        // For "status" column - use the appointment request status
         status: appointment.status,
         // For "reviewStars" column (not available in API)
         reviewStars: undefined,
@@ -249,7 +239,7 @@ export default function AgentAppointmentsDataView({
             type: "primary" as ActionType,
             icon: <FaExchangeAlt />,
             child: (
-              <AppointmentStatusToggleRequest
+              <AgentStatusToggle
                 appointmentId={row.id}
                 currentStatus={row.status}
                 onConfirm={() => {

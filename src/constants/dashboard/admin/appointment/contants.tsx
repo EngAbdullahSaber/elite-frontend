@@ -6,7 +6,11 @@ import {
   TableColumn,
 } from "@/types/components/Table";
 import { AppointmentRow, MiniUser } from "@/types/dashboard/appointment";
-import { BookingStatus, BookingStatusRequest } from "@/types/global";
+import {
+  BookingStatus,
+  BookingStatusConfirme,
+  BookingStatusRequest,
+} from "@/types/global";
 import { getDefaultProjectpath } from "@/utils/appointment";
 import { formatDate, formatTime } from "@/utils/date";
 import { FaStar } from "react-icons/fa";
@@ -30,9 +34,9 @@ export const bookingStatusMapReques: Record<BookingStatusRequest, string> = {
   rejected: "ملغي",
 };
 
-export const agentBookingStatusMap: Record<BookingStatusRequest, string> = {
+export const agentBookingStatusMap: Record<BookingStatusConfirme, string> = {
   completed: "مكتمل",
-  no_show: "لم يحضر",
+  expired: "لم يحضر",
 };
 export const bookingStatusStyle: Record<BookingStatus, string> = {
   pending: "bg-[#FFF8E1] text-[#9C6B00]",
@@ -361,22 +365,7 @@ export function useAppointmentRequestColumns(): TableColumn<AppointmentRow>[] {
           }
         },
       },
-      {
-        key: "agent",
-        label: "الوسيط المعين",
-        cell: (user: any | undefined) => {
-          if (!user) return <span className="text-gray-400">غير معين</span>;
 
-          return (
-            <InfoCell
-              image={user.image || ""}
-              subtitle={user.email}
-              title={user.name}
-              href={isAdmin ? `/dashboard/admin/agents/${user.id}` : undefined}
-            />
-          );
-        },
-      },
       {
         key: "client",
         label: "العميل",
@@ -400,19 +389,29 @@ export function useAppointmentRequestColumns(): TableColumn<AppointmentRow>[] {
           const style =
             val === "pending"
               ? "bg-yellow-100 text-yellow-800"
-              : val === "confirmed"
+              : val === "confirmed" || val === "completed"
               ? "bg-green-100 text-green-800"
               : val === "rejected"
               ? "bg-red-100 text-red-800"
+              : val === "expired"
+              ? "bg-orange-100 text-orange-800"
+              : val === "accepted"
+              ? "bg-blue-100 text-blue-800"
               : "bg-gray-100 text-gray-500";
 
           const label =
             val === "pending"
               ? "قيد الانتظار"
               : val === "confirmed"
-              ? "مؤكد"
+              ? "مكتمل"
+              : val === "completed"
+              ? "مكتمل"
               : val === "rejected"
               ? "مرفوض"
+              : val === "expired"
+              ? "لم يحضر"
+              : val === "accepted"
+              ? "مقبول"
               : "غير محدد";
 
           return (
