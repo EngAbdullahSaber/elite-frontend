@@ -19,6 +19,13 @@ import {
   updateClient,
   getClientById,
 } from "@/services/clinets/clinets";
+import {
+  BiIdCard,
+  BiHome,
+  BiTrash,
+  BiDownload,
+  BiUpload,
+} from "react-icons/bi";
 
 type Props = {
   client?: Omit<ClientRow, "joinedAt">;
@@ -46,6 +53,156 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+
+// Document Upload Component
+interface DocumentUploadProps {
+  label: string;
+  previewUrl: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemove: () => void;
+  onDownload?: () => void;
+  error?: string;
+  icon: React.ReactNode;
+  accept?: string;
+  required?: boolean;
+}
+
+const DocumentUpload: React.FC<DocumentUploadProps> = ({
+  label,
+  previewUrl,
+  onChange,
+  onRemove,
+  onDownload,
+  error,
+  icon,
+  accept = "image/*,.pdf",
+  required = false,
+}) => {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith("image/") || file.type === "application/pdf") {
+        const event = {
+          target: { files: [file] },
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange(event);
+      } else {
+        toast.error("يرجى رفع ملف صورة أو PDF فقط");
+      }
+    }
+  };
+
+  const getFileType = (url: string) => {
+    if (url.toLowerCase().endsWith(".pdf")) return "pdf";
+    return "image";
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-gray-700">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+
+      <div
+        className={`border-2 border-dashed rounded-xl p-4 text-center transition-all duration-200 ${
+          isDragging
+            ? "border-blue-500 bg-blue-50"
+            : error
+            ? "border-red-300 bg-red-50"
+            : "border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100"
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {previewUrl ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-center">
+              {getFileType(previewUrl) === "pdf" ? (
+                <div className="w-16 h-20 bg-red-100 rounded-lg flex items-center justify-center">
+                  <BiIdCard className="w-8 h-8 text-red-600" />
+                </div>
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt={label}
+                  className="w-16 h-20 object-cover rounded-lg border border-gray-200"
+                />
+              )}
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-sm text-gray-600 font-medium">
+                {getFileType(previewUrl) === "pdf" ? "ملف PDF" : "صورة"}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={onRemove}
+                className="flex items-center gap-1 px-3 py-1 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+              >
+                <BiTrash className="w-3 h-3" />
+                إزالة
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex justify-center">
+              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                {icon}
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600 font-medium">
+                اسحب الملف هنا أو انقر للرفع
+              </p>
+              <p className="text-xs text-gray-500">
+                PNG, JPG, PDF (الحد الأقصى 5MB)
+              </p>
+            </div>
+
+            <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+              <BiUpload className="w-4 h-4" />
+              اختر ملف
+              <input
+                type="file"
+                className="hidden"
+                accept={accept}
+                onChange={onChange}
+              />
+            </label>
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+          ⚠️ {error}
+        </p>
+      )}
+    </div>
+  );
+};
 
 export default function BasicInfoForm({
   client,
@@ -257,9 +414,11 @@ export default function BasicInfoForm({
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("حجم الملف يجب أن يكون أقل من 5MB");
+        return;
+      }
       setValue("profilePhotoFile", file);
-
-      // Create preview URL
       const imageUrl = URL.createObjectURL(file);
       setProfilePreview(imageUrl);
     }
@@ -268,9 +427,11 @@ export default function BasicInfoForm({
   const handleNationalIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("حجم الملف يجب أن يكون أقل من 5MB");
+        return;
+      }
       setValue("nationalIdFile", file);
-
-      // Create preview URL
       const imageUrl = URL.createObjectURL(file);
       setNationalIdPreview(imageUrl);
     }
@@ -279,11 +440,25 @@ export default function BasicInfoForm({
   const handleResidencyIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("حجم الملف يجب أن يكون أقل من 5MB");
+        return;
+      }
       setValue("residencyIdFile", file);
-
-      // Create preview URL
       const imageUrl = URL.createObjectURL(file);
       setResidencyIdPreview(imageUrl);
+    }
+  };
+
+  const handleDownloadNationalId = () => {
+    if (nationalIdPreview && !nationalIdPreview.startsWith("blob:")) {
+      window.open(nationalIdPreview, "_blank");
+    }
+  };
+
+  const handleDownloadResidencyId = () => {
+    if (residencyIdPreview && !residencyIdPreview.startsWith("blob:")) {
+      window.open(residencyIdPreview, "_blank");
     }
   };
 
@@ -387,42 +562,28 @@ export default function BasicInfoForm({
           className="col-span-12 md:col-span-6"
         />
 
-        {/* User Type */}
-        {/* <SelectInput
-          name="userType"
-          label="نوع المستخدم"
-          value={watch("userType")}
-          onChange={(val) =>
-            setValue("userType", val as "agent" | "marketer" | "customer")
-          }
-          options={[
-            { label: "عميل", value: "customer" },
-            { label: "وسيط", value: "agent" },
-          ]}
-          error={errors.userType?.message}
-          className="col-span-12 md:col-span-12"
-        /> */}
-
-        {/* Additional Documents */}
+        {/* Document Uploads */}
         <div className="col-span-12 md:col-span-6">
-          <ImageUpload
-            imageUrl={nationalIdPreview}
+          <DocumentUpload
+            label="الهوية الوطنية"
+            previewUrl={nationalIdPreview}
             onChange={handleNationalIdChange}
             onRemove={handleRemoveNationalId}
+            onDownload={handleDownloadNationalId}
             error={errors.nationalIdFile?.message}
-            label="صورة الهوية الوطنية"
-            showRemoveButton={!!nationalIdPreview}
+            icon={<BiIdCard className="w-6 h-6 text-gray-600" />}
           />
         </div>
 
         <div className="col-span-12 md:col-span-6">
-          <ImageUpload
-            imageUrl={residencyIdPreview}
+          <DocumentUpload
+            label="إثبات الإقامة"
+            previewUrl={residencyIdPreview}
             onChange={handleResidencyIdChange}
             onRemove={handleRemoveResidencyId}
+            onDownload={handleDownloadResidencyId}
             error={errors.residencyIdFile?.message}
-            label="صورة إثبات الإقامة"
-            showRemoveButton={!!residencyIdPreview}
+            icon={<BiHome className="w-6 h-6 text-gray-600" />}
           />
         </div>
 

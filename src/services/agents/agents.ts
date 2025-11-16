@@ -137,7 +137,7 @@ export async function getAgentById(
 // POST - Create new agent
 export async function createAgent(data: CreateAgentData): Promise<Agent> {
   try {
-    const response = await api.post("/agents", data, {
+    const response = await api.post("/agents/register", data, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

@@ -2,7 +2,6 @@
 
 import ClientDetails from "./ClientDetails";
 import DashboardHeaderTitle from "../DashboardHeaderTitle";
-import DownloadContent from "@/components/shared/DownloadContent";
 import Link from "next/link";
 import { BiGroup } from "react-icons/bi";
 import { getClientById } from "@/services/clinets/clinets";
@@ -59,7 +58,7 @@ export default function ClientDetailsWrapper({ clientId }: Props) {
         path={["العملاء", `تفاصيل العميل - ${client.fullName}`]}
       >
         <div className="flex gap-4 flex-wrap">
-          <DownloadContent text="تحميل المعلومات" />
+          {/* <DownloadContent text="تحميل المعلومات" /> */}
           <Link className="btn-primary" href="/dashboard/admin/clients">
             <BiGroup /> عرض جميع العملاء
           </Link>

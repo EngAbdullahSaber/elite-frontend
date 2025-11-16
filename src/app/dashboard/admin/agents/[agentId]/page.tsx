@@ -1,5 +1,7 @@
 "use client";
 import AgentDetailsWrapper from "@/components/dashboard/agents/AgentDetailsWrapper";
+import AgentAppointments from "@/components/dashboard/appointments/AgentAppointments";
+import AgentAppointmentsDataView from "@/components/dashboard/appointments/AgentAppointmentsDataView";
 import LoadingAgentDetailsPage from "@/components/dashboard/appointments/AgentLoading";
 import AppointmentsDataView from "@/components/dashboard/appointments/AppointmentsDataView";
 import DashboardSectionCard from "@/components/dashboard/DashboardSectionCard";
@@ -19,7 +21,7 @@ export default function AgentDetailsPage() {
           {" "}
           سجل الحجوزات المرتبطة بالوسيط
         </h2>
-        <AppointmentsDataView agentId={agentId} />
+        <AgentAppointments agentId={agentId} />
       </DashboardSectionCard>
     </div>
   );

@@ -300,7 +300,7 @@ export default function GeneralInfoSection({
         />
 
         {/* المدينة */}
-        <div className="col-span-12 md:col-span-6">
+        <div className="col-span-12 md:col-span-12">
           <label className="text-lg font-medium block mb-3">المدينة</label>
           <Controller
             name="cityId"
@@ -335,7 +335,7 @@ export default function GeneralInfoSection({
         </div>
 
         {/* المنطقة */}
-        <div className="col-span-12 md:col-span-6">
+        <div className="col-span-12 md:col-span-12">
           <label className="text-lg font-medium block mb-3">المنطقة</label>
           <Controller
             name="areaId"

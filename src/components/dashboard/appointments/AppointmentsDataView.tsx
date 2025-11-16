@@ -17,38 +17,81 @@ import {
 } from "@/components/shared/Header/MenuActionList";
 import AppointmentProofUploadToggle from "./AppointmentProofUploadToggle";
 import { useRoleFromPath } from "@/hooks/dashboard/admin/useRoleFromPath";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { getRoleBasedAppointmentFilters } from "@/utils/appointment";
 
 type AppointmentsDataViewProps = {
-  agentId?: number;
-  clientId?: number;
   onDataUpdate?: (data: any[], filters: Record<string, any>) => void;
 };
 
+interface UserData {
+  id: number;
+  userType: string;
+  email: string;
+  fullName: string;
+  // Add other user properties as needed
+}
+
 export default function AppointmentsDataView({
-  agentId,
-  clientId,
   onDataUpdate,
 }: AppointmentsDataViewProps) {
-  const getRows = useAppointments({ agentId, clientId });
-  const appointmentColumns = useAppointmentColumns();
   const role = useRoleFromPath();
+  const [sessionAgentId, setSessionAgentId] = useState<number | undefined>();
+  const [sessionClientId, setSessionClientId] = useState<number | undefined>();
+  const [loading, setLoading] = useState(true);
+
+  // Get user data from sessionStorage based on role
+  useEffect(() => {
+    const getUserDataFromSession = () => {
+      try {
+        const userDataString = sessionStorage.getItem("user");
+        if (userDataString) {
+          const userData: UserData = JSON.parse(userDataString);
+
+          // Set IDs based on user type
+          if (userData.userType === "agent") {
+            setSessionAgentId(userData.id);
+          } else if (userData.userType === "customer") {
+            setSessionClientId(userData.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing user data from sessionStorage:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getUserDataFromSession();
+  }, []);
+
+  // Use props if provided, otherwise use session data
+  const finalAgentId = sessionAgentId;
+  const finalClientId = sessionClientId;
+
+  const getRows = useAppointments({
+    agentId: finalAgentId,
+    clientId: finalClientId,
+  });
+
+  const appointmentColumns = useAppointmentColumns();
+
   // Handle data updates and pass to parent component
   const handleDataUpdate = (data: any[], filters: Record<string, any>) => {
     if (onDataUpdate) {
       onDataUpdate(data, filters);
     }
   };
+
   // ✅ Filter columns by context
   const filteredColumns = useMemo(
     () =>
       appointmentColumns.filter((col) => {
-        if (clientId && col.key === "client") return false;
-        if (agentId && col.key === "agent") return false;
+        if (finalClientId && col.key === "client") return false;
+        if (finalAgentId && col.key === "agent") return false;
         return true;
       }),
-    [clientId, agentId]
+    [finalClientId, finalAgentId, appointmentColumns]
   );
 
   // ✅ Role-based filters
@@ -80,7 +123,16 @@ export default function AppointmentsDataView({
             icon: <FaEye />,
             link: `/dashboard/${role}/appointments/${row.id}`,
           },
-          {
+        ];
+
+        // Only show status change for admin or if user is the agent/client of the appointment
+        const canChangeStatus =
+          role === "admin" ||
+          (role === "agent" && finalAgentId === row.agent?.id) ||
+          (role === "client" && finalClientId === row.client?.id);
+
+        if (canChangeStatus) {
+          base.push({
             label: "تغيير الحالة",
             type: "primary" as ActionType,
             icon: <FaExchangeAlt />,
@@ -94,8 +146,8 @@ export default function AppointmentsDataView({
                 onCancel={() => {}}
               />
             ),
-          },
-        ];
+          });
+        }
 
         if (role === "admin") {
           base.splice(1, 0, {
@@ -135,8 +187,18 @@ export default function AppointmentsDataView({
 
         return base;
       },
-    [role]
+    [role, finalAgentId, finalClientId]
   );
+
+  // Show loading while reading session storage
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <span className="mr-3">جاري تحميل البيانات...</span>
+      </div>
+    );
+  }
 
   return (
     <DataView<AppointmentRow>

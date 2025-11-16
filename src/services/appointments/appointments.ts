@@ -141,7 +141,27 @@ export async function getAppointments(
     throw error;
   }
 }
+// GET - Fetch all appointments with pagination and filtering
+export async function getAppointmentsRequests(
+  params?: Record<string, string | number>,
+  signal?: AbortSignal
+): Promise<AppointmentsResponse> {
+  try {
+    const response = await api.get("/appointments/agent", {
+      params: {
+        page: params?.page || 1,
+        limit: params?.limit || 10,
+        ...params, // Spread other params like filters, sort, etc.
+      },
+      signal,
+    });
 
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    throw error;
+  }
+}
 // GET - Fetch single appointment by ID
 export async function getAppointmentById(
   id: number,
@@ -372,6 +392,43 @@ export async function updateAppointmentStatus(
     const response = await api.post(`/appointments/${id}/update-status`, data, {
       signal,
     });
+
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error(`Error updating appointment status ${id}:`, error);
+    throw error;
+  }
+}
+// POST - Update appointment status
+export async function updateAgentAppointmentStatus(
+  id: number,
+  data: {
+    status: string;
+    notes?: string;
+  },
+  signal?: AbortSignal
+): Promise<Appointment> {
+  try {
+    const response = await api.post(`/appointments/${id}/final-status`, data, {
+      signal,
+    });
+
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error(`Error updating appointment status ${id}:`, error);
+    throw error;
+  }
+}
+
+// POST - Update appointment status
+export async function updateAppointmentStatusRequest(
+  id: number,
+  data: {
+    status: string;
+  }
+): Promise<Appointment> {
+  try {
+    const response = await api.patch(`/appointments/requests/${id}`, data);
 
     return response.data.data || response.data;
   } catch (error) {

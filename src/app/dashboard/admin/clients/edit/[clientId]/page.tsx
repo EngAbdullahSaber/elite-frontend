@@ -53,9 +53,15 @@ export default function EditClientPage({ params }: Props) {
         email: client.email,
         phone: client.phoneNumber,
         type: client.userType,
-        image: ImageBaseUrl + client.profilePhotoUrl,
-        nationalIdUrl: ImageBaseUrl + client.nationalIdUrl,
-        residencyIdUrl: ImageBaseUrl + client.residencyIdUrl,
+        image: client.profilePhotoUrl
+          ? ImageBaseUrl + client.profilePhotoUrl
+          : client.profilePhotoUrl,
+        nationalIdUrl: client.nationalIdUrl
+          ? ImageBaseUrl + client.nationalIdUrl
+          : client.nationalIdUrl,
+        residencyIdUrl: client.residencyIdUrl
+          ? ImageBaseUrl + client.residencyIdUrl
+          : client.residencyIdUrl,
       }
     : undefined;
 
@@ -107,7 +113,7 @@ export default function EditClientPage({ params }: Props) {
       </div>
     );
   }
-   return (
+  return (
     <div>
       <DashboardHeaderTitle
         path={["العملاء", `تعديل بيانات العميل: ${client.fullName}`]}

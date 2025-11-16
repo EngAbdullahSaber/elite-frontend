@@ -52,14 +52,20 @@ export default function EditAgentPage({ params }: Props) {
           kycStatus: agentData.status,
           kycNotes: agentData.kycNotes || "لا توجد ملاحظات",
           verificationStatus: agentData.user?.verificationStatus || "غير محدد",
-          identityProofUrl: agentData.identityProofUrl,
-          residencyDocumentUrl: agentData.residencyDocumentUrl,
+          identityProofUrl: agentData.identityProofUrl
+            ? agentData.identityProofUrl
+            : "",
+          residencyDocumentUrl: agentData.residencyDocumentUrl
+            ? agentData.residencyDocumentUrl
+            : "",
           userId: agentData.user?.id, // Add userId for the form
           address: agentData.address || "غير متوفر",
           dateOfBirth: agentData.user?.dateOfBirth,
           gender: agentData.user?.gender,
           nationality: agentData.user?.nationality,
-          image: agentData.user?.profilePhotoUrl || null,
+          image: agentData.user?.profilePhotoUrl
+            ? agentData.user?.profilePhotoUrl
+            : "",
         };
 
         setAgent(mappedAgent);

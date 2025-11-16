@@ -30,3 +30,29 @@ export async function CreateCoversions(data: {
     throw error;
   }
 }
+export async function CreateCoversionsToken(
+  data: {
+    type?: string;
+    userId?: number | string;
+    visitorId?: string | null;
+  },
+  token?: string
+): Promise<any> {
+  console.log(token);
+  try {
+    const config = token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : {};
+
+    const response = await api.post("/traffic/conversions", data, config);
+
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error("Error creating conversion:", error);
+    throw error;
+  }
+}

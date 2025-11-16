@@ -9,7 +9,10 @@ import React, { useState } from "react";
 import { Register, VerifyOtp } from "@/services/Auth/auth";
 import toast from "react-hot-toast";
 import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
-import { CreateCoversions } from "@/services/trackingService/trackingService";
+import {
+  CreateCoversions,
+  CreateCoversionsToken,
+} from "@/services/trackingService/trackingService";
 
 type FormData = {
   fullName: string;
@@ -37,6 +40,7 @@ export default function SignUpPage() {
   });
   const [otp, setOtp] = useState("");
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [authToken, setAuthToken] = useState<string | null>(null); // Store the auth token
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -173,6 +177,15 @@ export default function SignUpPage() {
 
       const response = await VerifyOtp(otpData);
 
+      // Store the token from the response
+      const token = response.accessToken;
+      if (token) {
+        setAuthToken(token);
+        // Optionally store in localStorage or sessionStorage for future use
+        localStorage.setItem("authToken", token);
+        sessionStorage.setItem("authToken", token);
+      }
+
       toast.success("تم تفعيل الحساب بنجاح!", {
         duration: 5000,
         position: "top-center",
@@ -184,13 +197,27 @@ export default function SignUpPage() {
           fontSize: "14px",
         },
       });
-      await CreateCoversions({
-        type: "registration",
-        visitorId: sessionStorage.getItem("visitor_Id"),
-      });
-      setTimeout(() => {
-        window.location.href = "/sign-in";
-      }, 2000);
+
+      // Create conversion with the auth token
+      if (sessionStorage.getItem("visitor_id")) {
+        try {
+          await CreateCoversionsToken(
+            {
+              type: "registration",
+              userId: response.id,
+              visitorId: sessionStorage.getItem("visitor_id"),
+            },
+            token
+          ); // Pass the token to the function
+        } catch (conversionError) {
+          console.error("Conversion tracking error:", conversionError);
+          // Don't block the user flow if conversion tracking fails
+        }
+      }
+
+      // setTimeout(() => {
+      //   window.location.href = "/sign-in";
+      // }, 2000);
     } catch (err: any) {
       console.error("OTP verification error:", err);
 

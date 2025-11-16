@@ -3,13 +3,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Card from "@/components/shared/Card";
 import SelectSingleDate from "@/components/shared/Forms/SelectSingleDate";
 import SelectTime from "@/components/shared/Forms/SelectTime";
-import UserChanger from "../UserChanger";
+import UserChangerPagination from "../UserChangerPagination";
 import TextareaInput from "@/components/shared/Forms/TextareaInput";
 import PropertyChanger from "../Property Filter/PropertyChanger";
 import FieldErrorMessage from "@/components/shared/Forms/FieldErrorMessage";
@@ -18,9 +18,9 @@ import SoftActionButton from "@/components/shared/SoftActionButton";
 import { useRoleFromPath } from "@/hooks/dashboard/admin/useRoleFromPath";
 import { useSearchParams } from "next/navigation";
 import { createAppointment } from "@/services/appointments/appointments";
-import useAgents from "@/hooks/dashboard/admin/agent/useAgents";
 import useProperties from "@/hooks/dashboard/admin/properties/useProperties";
-import useClients from "@/hooks/dashboard/admin/client/useClients";
+import { getClients } from "@/services/clinets/clinets";
+import { getAgents } from "@/services/agents/agents";
 
 // Update schema to match API data structure
 const schema = z.object({
@@ -47,6 +47,13 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalRecords: number;
+  hasNextPage: boolean;
+}
+
 export default function AddAppointmentForm() {
   const searchParams = useSearchParams();
   const clientIdParam = searchParams.get("client_id");
@@ -56,77 +63,191 @@ export default function AddAppointmentForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  // Use the hooks directly
-  const {
-    agents: agentsData,
-    loading: agentsLoading,
-    error: agentsError,
-    getRows: getAgentsData,
-  } = useAgents();
-
   const {
     data: propertiesData,
     loading: propertiesLoading,
     error: propertiesError,
   } = useProperties();
 
-  const getClientsData = useClients();
-
-  // State for fetched data
+  // State for fetched data with pagination
   const [clients, setClients] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [properties, setProperties] = useState<any[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+
+  // Clients pagination state
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientPagination, setClientPagination] = useState<PaginationMeta>({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    hasNextPage: false,
+  });
+
+  // Agents pagination state
+  const [agentsLoading, setAgentsLoading] = useState(false);
+  const [agentSearch, setAgentSearch] = useState("");
+  const [agentPagination, setAgentPagination] = useState<PaginationMeta>({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    hasNextPage: false,
+  });
+
   const [dataError, setDataError] = useState<string | null>(null);
 
-  // Fetch clients and agents data
-  useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    const fetchData = async () => {
+  // Fetch clients with search and pagination
+  const fetchClients = useCallback(
+    async (
+      page: number = 1,
+      search: string = "",
+      resetList: boolean = false
+    ) => {
+      setClientsLoading(true);
       try {
-        setDataLoading(true);
+        const params: Record<string, string> = {
+          page: page.toString(),
+          limit: "10",
+          userType: "customer",
+        };
+
+        if (search) {
+          params.search = search;
+        }
+
+        const response = await getClients(params);
+        const clientsData = response?.records || [];
+        const paginationData = response;
+
+        // Calculate hasNextPage based on current page and total records
+        const totalPages = Math.ceil((paginationData.total_records || 0) / 10);
+        const hasNextPage = page < totalPages;
+
+        setClients((prev) =>
+          resetList ? clientsData : [...prev, ...clientsData]
+        );
+        setClientPagination({
+          currentPage: paginationData.current_page || page,
+          totalPages: totalPages,
+          totalRecords: paginationData.total_records || 0,
+          hasNextPage: hasNextPage,
+        });
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+        toast.error("فشل في تحميل العملاء", {
+          duration: 5000,
+          position: "top-center",
+          icon: "❌",
+        });
+      } finally {
+        setClientsLoading(false);
+      }
+    },
+    []
+  );
+
+  // Fetch agents with search and pagination using getAgents method
+  const fetchAgents = useCallback(
+    async (
+      page: number = 1,
+      search: string = "",
+      resetList: boolean = false
+    ) => {
+      setAgentsLoading(true);
+      try {
+        const params = {
+          page: page,
+          limit: 10,
+          search: search || undefined,
+          status: "approved", // Only fetch approved agents
+        };
+
+        const response = await getAgents(params);
+        const agentsData = response?.records;
+        const paginationData = response;
+
+        // Calculate hasNextPage based on current page and total records
+        const totalRecords =
+          paginationData.total_records || paginationData.totalRecords || 0;
+        const totalPages = Math.ceil(totalRecords / 10);
+        const hasNextPage = page < totalPages;
+
+        setAgents((prev) =>
+          resetList ? agentsData : [...prev, ...agentsData]
+        );
+        setAgentPagination({
+          currentPage:
+            paginationData.current_page || paginationData.currentPage || page,
+          totalPages: totalPages,
+          totalRecords: totalRecords,
+          hasNextPage: hasNextPage,
+        });
+      } catch (error) {
+        console.error("Error fetching agents:", error);
+        toast.error("فشل في تحميل بيانات الوكلاء", {
+          duration: 5000,
+          position: "top-center",
+          icon: "❌",
+        });
+      } finally {
+        setAgentsLoading(false);
+      }
+    },
+    []
+  );
+
+  // Handle client search
+  const handleClientSearch = (search: string) => {
+    setClientSearch(search);
+    fetchClients(1, search, true);
+  };
+
+  // Handle agent search
+  const handleAgentSearch = (search: string) => {
+    setAgentSearch(search);
+    fetchAgents(1, search, true);
+  };
+
+  // Handle client pagination
+  const handleClientLoadMore = () => {
+    if (clientPagination.hasNextPage && !clientsLoading) {
+      fetchClients(clientPagination.currentPage + 1, clientSearch, false);
+    }
+  };
+
+  // Handle agent pagination
+  const handleAgentLoadMore = () => {
+    if (agentPagination.hasNextPage && !agentsLoading) {
+      fetchAgents(agentPagination.currentPage + 1, agentSearch, false);
+    }
+  };
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
         setDataError(null);
 
         // Fetch clients data
-        const clientsResult = await getClientsData(signal);
+        await fetchClients(1, "", true);
 
-        if (signal.aborted) return;
-
-        // Set clients data
-        if (clientsResult.error) {
-          throw new Error(clientsResult.error.message);
-        }
-        setClients(clientsResult.rows || []);
-
-        // Set agents data from useAgents hook (only for admin)
+        // Fetch agents data (only for admin)
         if (role === "admin") {
-          // Use the agents data directly from the hook
-          setAgents(agentsData || []);
+          await fetchAgents(1, "", true);
         }
 
         // Set properties data
         setProperties(propertiesData || []);
-
-        setDataLoading(false);
       } catch (error) {
-        if (!signal.aborted) {
-          console.error("Error fetching form data:", error);
-          setDataError(
-            error instanceof Error ? error.message : "فشل في تحميل البيانات"
-          );
-          setDataLoading(false);
-        }
+        console.error("Error fetching form data:", error);
+        setDataError(
+          error instanceof Error ? error.message : "فشل في تحميل البيانات"
+        );
       }
     };
 
-    fetchData();
-
-    return () => {
-      controller.abort();
-    };
-  }, [getClientsData, agentsData, propertiesData, role]);
+    fetchInitialData();
+  }, [fetchClients, fetchAgents, propertiesData, role]);
 
   const {
     handleSubmit,
@@ -155,19 +276,13 @@ export default function AddAppointmentForm() {
         position: "top-center",
       });
     }
-    if (agentsError) {
-      toast.error("فشل في تحميل بيانات الوكلاء", {
-        duration: 5000,
-        position: "top-center",
-      });
-    }
     if (propertiesError) {
       toast.error("فشل في تحميل بيانات العقارات", {
         duration: 5000,
         position: "top-center",
       });
     }
-  }, [dataError, agentsError, propertiesError]);
+  }, [dataError, propertiesError]);
 
   const onSubmit = async (data: FormValues) => {
     setLoading(true);
@@ -257,7 +372,7 @@ export default function AddAppointmentForm() {
     router.back();
   };
 
-  // Format users for UserChanger component - Updated to match AgentRow structure
+  // Format users for UserChangerPagination component
   const formatUsers = (users: any[]) => {
     return (
       users?.map((user) => {
@@ -271,6 +386,25 @@ export default function AddAppointmentForm() {
           phone: userData.phoneNumber || userData.phone || user.phone,
           avatar:
             userData.profilePhoto || userData.profilePhotoUrl || user.avatar,
+        };
+      }) || []
+    );
+  };
+
+  // Format agents specifically for the agents API response
+  const formatAgents = (agents: any[]) => {
+    return (
+      agents?.map((agent) => {
+        // Handle agent structure from getAgents API
+        const userData = agent.user || agent;
+
+        return {
+          id: parseInt(agent.id || userData.id),
+          name: userData.fullName || userData.name || agent.name || "غير معروف",
+          email: userData.email || agent.email,
+          phone: userData.phoneNumber || userData.phone || agent.phone,
+          avatar:
+            userData.profilePhoto || userData.profilePhotoUrl || agent.avatar,
         };
       }) || []
     );
@@ -294,7 +428,7 @@ export default function AddAppointmentForm() {
     );
   };
 
-  const isLoading = dataLoading || agentsLoading || propertiesLoading;
+  const isLoading = clientsLoading || agentsLoading || propertiesLoading;
   const hasData =
     clients.length > 0 &&
     properties.length > 0 &&
@@ -308,11 +442,10 @@ export default function AddAppointmentForm() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             <span className="mr-3">جاري تحميل البيانات...</span>
           </div>
-        ) : dataError || agentsError || propertiesError ? (
+        ) : dataError || propertiesError ? (
           <div className="text-center py-12 text-red-600">
             <p>
               {dataError ||
-                agentsError?.message ||
                 propertiesError?.message ||
                 "فشل في تحميل البيانات المطلوبة"}
             </p>
@@ -379,27 +512,60 @@ export default function AddAppointmentForm() {
             {role === "admin" && (
               <div className="col-span-12 md:col-span-6">
                 <label className="text-lg font-medium block mb-3">الوسيط</label>
-                <UserChanger
-                  users={formatUsers(agents)}
+                <UserChangerPagination
+                  users={formatAgents(agents)}
+                  initialUserId={watch("agentId") || undefined}
                   label="وسيط"
-                  onChange={(agent) => setValue("agentId", agent?.id)}
+                  onChange={(agent) => {
+                    if (agent) {
+                      setValue("agentId", agent.id);
+                    } else {
+                      setValue("agentId", undefined);
+                    }
+                  }}
                   loading={agentsLoading}
+                  searchable={true}
+                  onSearch={handleAgentSearch}
+                  searchValue={agentSearch}
+                  hasMore={agentPagination.hasNextPage}
+                  onLoadMore={handleAgentLoadMore}
+                  loadingMore={agentsLoading}
                 />
                 <FieldErrorMessage errors={errors} fieldName="agentId" />
+                <p className="text-sm text-gray-500 mt-1">
+                  اختر الوسيط المسؤول عن الموعد
+                </p>
               </div>
             )}
 
             {/* العميل */}
             <div className="col-span-12 md:col-span-6">
               <label className="text-lg font-medium block mb-3">العميل</label>
-              <UserChanger
+              <UserChangerPagination
                 users={formatUsers(clients)}
+                initialUserId={
+                  initialClientId || watch("customerId") || undefined
+                }
                 label="عميل"
-                initialUserId={initialClientId ?? undefined}
-                onChange={(client) => setValue("customerId", client?.id)}
-                loading={dataLoading}
+                onChange={(client) => {
+                  if (client) {
+                    setValue("customerId", client.id);
+                  } else {
+                    setValue("customerId", undefined);
+                  }
+                }}
+                loading={clientsLoading}
+                searchable={true}
+                onSearch={handleClientSearch}
+                searchValue={clientSearch}
+                hasMore={clientPagination.hasNextPage}
+                onLoadMore={handleClientLoadMore}
+                loadingMore={clientsLoading}
               />
               <FieldErrorMessage errors={errors} fieldName="customerId" />
+              <p className="text-sm text-gray-500 mt-1">
+                اختر العميل المراد جدولة الموعد له
+              </p>
             </div>
 
             {/* العقار */}
@@ -427,33 +593,7 @@ export default function AddAppointmentForm() {
               />
             </div>
 
-            {/* Debug information (remove in production) */}
-            {process.env.NODE_ENV === "development" && (
-              <div className="col-span-12">
-                <Card title="بيانات الإرسال (للتطوير)">
-                  <div className="text-xs bg-gray-50 p-3 rounded">
-                    <pre>
-                      {JSON.stringify(
-                        {
-                          propertyId: watch("propertyId"),
-                          customerId: watch("customerId"),
-                          agentId: watch("agentId"),
-                          appointmentDate: watch("appointmentDate"),
-                          startTime: watch("startTime"),
-                          endTime: watch("endTime"),
-                          customerNotes: watch("customerNotes"),
-                          clientsCount: clients.length,
-                          agentsCount: agents.length,
-                          propertiesCount: properties.length,
-                        },
-                        null,
-                        2
-                      )}
-                    </pre>
-                  </div>
-                </Card>
-              </div>
-            )}
+         
 
             {/* الإجراءات */}
             <div className="col-span-12 flex items-center gap-6 flex-wrap mt-4">

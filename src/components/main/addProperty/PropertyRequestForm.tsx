@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 import RequesterInfoSection from "./RequesterInfoSection";
-import SpecificationsSection from "./SpecificationsSection";
 import RequertPropertyInfoSection from "./RequertPropertyInfoSection";
 import Uploader from "@/components/shared/Forms/Uploader";
 import Card from "@/components/shared/Card";
@@ -20,6 +19,7 @@ import {
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { ImageBaseUrl } from "@/libs/app.config";
+import { FiPlus, FiTrash2, FiMapPin, FiInfo, FiFileText } from "react-icons/fi";
 
 export type PropertyRequestFormValues = {
   requesterName: string;
@@ -74,6 +74,25 @@ const relationshipTypeReverseMap: Record<
   authorized_representative: "authorized_representative",
 };
 
+// Default specifications for new property requests
+const DEFAULT_SPECIFICATIONS: Record<
+  string,
+  { name: string; value: string | string[] }
+> = {
+  bedrooms: { name: "عدد غرف النوم", value: "" },
+  bathrooms: { name: "عدد الحمامات", value: "" },
+  area: { name: "المساحة (م²)", value: "" },
+  floors: { name: "عدد الطوابق", value: "" },
+  year_built: { name: "سنة البناء", value: "" },
+  finishing: { name: "نوع التشطيب", value: "" },
+  direction: { name: "الاتجاه", value: "" },
+  street_view: { name: "إطلالة على الشارع", value: "" },
+  parking: { name: "مواقف السيارات", value: "" },
+  car_entrance: { name: "مدخل سيارة", value: "" },
+  pool: { name: "مسبح", value: "" },
+  garden: { name: "حديقة", value: "" },
+};
+
 export default function PropertyRequestForm({
   defaultValues,
   requestId,
@@ -95,12 +114,53 @@ export default function PropertyRequestForm({
         propertyType: "apartment",
         askedPrice: 0,
         location: { lat: 21.2854, lng: 39.2376 },
-        specifications: {},
+        specifications: DEFAULT_SPECIFICATIONS,
         authorizationDoc: undefined,
         ownershipDoc: undefined,
         ...defaultValues,
       },
     });
+
+  // Watch specifications to handle dynamic updates
+  const specifications = watch("specifications");
+
+  // Initialize default data only for new properties
+  useEffect(() => {
+    if (!isEdit && !defaultValues) {
+      setValue("specifications", DEFAULT_SPECIFICATIONS);
+    }
+  }, [isEdit, defaultValues, setValue]);
+
+  // Function to add new specification item
+  const addSpecificationItem = () => {
+    const newKey = `spec_${Date.now()}`;
+    const newSpecifications = { ...specifications };
+    newSpecifications[newKey] = { name: "", value: "" };
+    setValue("specifications", newSpecifications);
+  };
+
+  // Function to remove specification item
+  const removeSpecificationItem = (key: string) => {
+    const newSpecifications = { ...specifications };
+    delete newSpecifications[key];
+    setValue("specifications", newSpecifications);
+  };
+
+  // Function to update specification item
+  const updateSpecificationItem = (
+    key: string,
+    field: "name" | "value",
+    newValue: string
+  ) => {
+    const newSpecifications = { ...specifications };
+    if (newSpecifications[key]) {
+      newSpecifications[key] = {
+        ...newSpecifications[key],
+        [field]: newValue,
+      };
+      setValue("specifications", newSpecifications);
+    }
+  };
 
   // Fetch property data when in edit mode
   useEffect(() => {
@@ -112,7 +172,6 @@ export default function PropertyRequestForm({
         const apiData = await getPropertySubmission(requestId);
 
         if (apiData) {
-          // Transform API data to form values
           const formData = transformApiDataToFormValues(apiData);
           reset(formData);
         }
@@ -131,9 +190,8 @@ export default function PropertyRequestForm({
   const transformApiDataToFormValues = (
     apiData: any
   ): PropertyRequestFormValues => {
-    // Parse location from string format "Lat: 21.2854, Lng: 39.2376"
     const parseLocation = (locationString: string) => {
-      if (!locationString) return { lat: 21.2854, lng: 39.2376 }; // Default fallback
+      if (!locationString) return { lat: 21.2854, lng: 39.2376 };
 
       try {
         const latMatch = locationString.match(/Lat:\s*([\d.-]+)/);
@@ -149,31 +207,39 @@ export default function PropertyRequestForm({
         console.error("Error parsing location:", error);
       }
 
-      return { lat: 21.2854, lng: 39.2376 }; // Default fallback
+      return { lat: 21.2854, lng: 39.2376 };
     };
 
-    // Extract specifications from the dynamic object
     const extractSpecifications = (specs: any) => {
       const specifications: any = {};
 
       if (!specs) return specifications;
 
-      // Handle numeric values
       if (specs.bedrooms !== undefined && specs.bedrooms !== null) {
-        specifications.bedrooms.value = specs.bedrooms.toString();
+        specifications.bedrooms = {
+          name: "عدد غرف النوم",
+          value: specs.bedrooms.toString(),
+        };
       }
       if (specs.bathrooms !== undefined && specs.bathrooms !== null) {
-        specifications.bathrooms.value = specs.bathrooms.toString();
+        specifications.bathrooms = {
+          name: "عدد الحمامات",
+          value: specs.bathrooms.toString(),
+        };
       }
 
-      // Handle area which might be under different keys
       if (specs.area !== undefined && specs.area !== null) {
-        specifications.area.value = specs.area.toString();
+        specifications.area = {
+          name: "المساحة (م²)",
+          value: specs.area.toString(),
+        };
       } else if (specs["المساحة"] !== undefined && specs["المساحة"] !== null) {
-        specifications.area.value = specs["المساحة"].toString();
+        specifications.area = {
+          name: "المساحة (م²)",
+          value: specs["المساحة"].toString(),
+        };
       }
 
-      // Add any additional specifications as custom fields
       Object.entries(specs).forEach(([key, value]) => {
         if (!["bedrooms", "bathrooms", "area", "المساحة"].includes(key)) {
           specifications[key] = {
@@ -201,7 +267,7 @@ export default function PropertyRequestForm({
             ImageBaseUrl + attachment.attachmentUrl,
           name: attachment.name || `مرفق_${attachment.id}`,
           type: attachment.type || "application/octet-stream",
-          file: attachment.file, // Keep file reference if exists
+          file: attachment.file,
         })) || [],
       authorizationDoc: apiData.authorizationDocUrl
         ? {
@@ -248,10 +314,8 @@ export default function PropertyRequestForm({
     setSubmitSuccess(false);
 
     try {
-      // Extract specifications from the form data
       const specifications: Record<string, any> = {};
 
-      // Get bedrooms and bathrooms from specifications
       if (data.specifications.bedrooms) {
         specifications.bedrooms =
           parseInt(data.specifications.bedrooms.value as string) || 0;
@@ -265,20 +329,15 @@ export default function PropertyRequestForm({
           parseInt(data.specifications.area.value as string) || 0;
       }
 
-      // Add other specifications if needed
       Object.keys(data.specifications).forEach((key) => {
         if (key !== "bedrooms" && key !== "bathrooms" && key !== "area") {
           specifications[key] = data.specifications[key].value;
         }
       });
 
-      // Convert location object to string
       const locationString = `Lat: ${data.location.lat}, Lng: ${data.location.lng}`;
-
-      // Create FormData object
       const formData = new FormData();
 
-      // Add basic fields
       formData.append(
         "relationshipType",
         relationshipTypeMap[data.relationshipType]
@@ -291,12 +350,10 @@ export default function PropertyRequestForm({
       formData.append("specifications", JSON.stringify(specifications));
       formData.append("askingPrice", data.askedPrice.toString());
 
-      // Add ownerId for create operation
       if (!isEdit && ownerId) {
         formData.append("ownerId", ownerId.toString());
       }
 
-      // Add attachments
       for (const attachment of data.attachments) {
         try {
           const file = await getFileFromFileItem(attachment);
@@ -306,7 +363,6 @@ export default function PropertyRequestForm({
         }
       }
 
-      // Add authorization document if exists
       if (data.authorizationDoc) {
         try {
           const authFile = await getFileFromFileItem(data.authorizationDoc);
@@ -316,7 +372,6 @@ export default function PropertyRequestForm({
         }
       }
 
-      // Add ownership document if exists
       if (data.ownershipDoc) {
         try {
           const ownershipFile = await getFileFromFileItem(data.ownershipDoc);
@@ -326,53 +381,24 @@ export default function PropertyRequestForm({
         }
       }
 
-      
-
-      // Log FormData contents for debugging
-      for (const [key, value] of formData.entries()) {
-        if (value instanceof File) {
-         } else {
-         }
-      }
-
       let result;
       if (isEdit && requestId) {
         result = await updatePropertySubmission(requestId, formData);
- 
-        // Show success toast for update
         toast.success("تم تحديث طلب العقار بنجاح", {
           duration: 4000,
           position: "top-center",
           icon: "✅",
-          style: {
-            background: "#10B981",
-            color: "#fff",
-            borderRadius: "8px",
-            fontSize: "14px",
-          },
         });
-
-        // Redirect back to the property submission details page after 2 seconds
         setTimeout(() => {
           router.back();
         }, 2000);
       } else {
         result = await createPropertySubmission(formData);
- 
-        // Show success toast for create
         toast.success("تم إنشاء طلب العقار بنجاح", {
           duration: 4000,
           position: "top-center",
           icon: "🎉",
-          style: {
-            background: "#10B981",
-            color: "#fff",
-            borderRadius: "8px",
-            fontSize: "14px",
-          },
         });
-
-        // Redirect to property submissions list after 2 seconds
         setTimeout(() => {
           router.back();
         }, 2000);
@@ -392,24 +418,16 @@ export default function PropertyRequestForm({
 
       setSubmitError(errorMessage);
 
-      // Show error toast
       toast.error(errorMessage, {
         duration: 5000,
         position: "top-center",
         icon: "❌",
-        style: {
-          background: "#EF4444",
-          color: "#fff",
-          borderRadius: "8px",
-          fontSize: "14px",
-        },
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Get current values for debugging or display
   const currentValues = watch();
 
   if (fetchLoading) {
@@ -424,112 +442,260 @@ export default function PropertyRequestForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      {/* Header */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <FiFileText className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isEdit ? "تعديل طلب عقار" : "طلب عقار جديد"}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {isEdit
+                ? "قم بتحديث معلومات العقار المطلوب"
+                : "املأ المعلومات التالية لتقديم طلب عقار جديد"}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Success/Error Messages */}
       {submitSuccess && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
-          ✅ تم {isEdit ? "تحديث" : "إنشاء"} طلب العقار بنجاح
+        <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 flex items-center gap-3">
+          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+            <span className="text-green-600 text-sm">✓</span>
+          </div>
+          <div>
+            <p className="font-medium">
+              ✅ تم {isEdit ? "تحديث" : "إنشاء"} طلب العقار بنجاح
+            </p>
+            <p className="text-sm text-green-600 mt-1">
+              سيتم تحويلك تلقائياً...
+            </p>
+          </div>
         </div>
       )}
 
       {submitError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          ❌ {submitError}
-        </div>
-      )}
-
-      <RequesterInfoSection control={control} />
-      <RequertPropertyInfoSection control={control} />
-
-      <Card title="موقع العقار">
-        <LocationInput control={control} name="location" />
-        <div className="mt-2 text-sm text-gray-500">
-          الإحداثيات الحالية: {currentValues.location.lat.toFixed(4)},{" "}
-          {currentValues.location.lng.toFixed(4)}
-        </div>
-      </Card>
-
-      <SpecificationsSection control={control} />
-
-      <Card title="المرفقات">
-        <Uploader
-          control={control}
-          name="attachments"
-          accept="image/*,.pdf,.doc,.docx"
-          label="مرفقات العقار"
-          allowMultiple={true}
-          allowPrimary={true}
-          rules={["الحد الأقصى لحجم الملف 9MB", "الصور، PDF، مستندات Word"]}
-        />
-        <div className="mt-2 text-sm text-gray-500">
-          عدد المرفقات: {currentValues.attachments.length}
-        </div>
-      </Card>
-
-      <Card title="وثيقة التفويض (إن وجدت)">
-        <Uploader
-          control={control}
-          name="authorizationDoc"
-          accept=".pdf,.doc,.docx,image/*"
-          label="وثيقة التفويض"
-          allowMultiple={false}
-          allowPrimary={false}
-          rules={["الحد الأقصى لحجم الملف 9MB", "PDF، مستندات Word، صور"]}
-        />
-      </Card>
-
-      <Card title="وثيقة الملكية (إن وجدت)">
-        <Uploader
-          control={control}
-          name="ownershipDoc"
-          accept=".pdf,.doc,.docx,image/*"
-          label="وثيقة الملكية"
-          allowMultiple={false}
-          allowPrimary={false}
-          rules={["الحد الأقصى لحجم الملف 9MB", "PDF، مستندات Word، صور"]}
-        />
-      </Card>
-
-      {/* Debug information (remove in production) */}
-      {process.env.NODE_ENV === "development" && (
-        <Card title="بيانات الإرسال (للتطوير)">
-          <div className="text-xs bg-gray-50 p-3 rounded">
-            <pre>
-              {JSON.stringify(
-                {
-                  mode: isEdit ? "edit" : "create",
-                  ownerId,
-                  relationshipType:
-                    relationshipTypeMap[currentValues.relationshipType],
-                  propertyTypeId: propertyTypeToId[currentValues.propertyType],
-                  location: `Lat: ${currentValues.location.lat}, Lng: ${currentValues.location.lng}`,
-                  specifications: currentValues.specifications,
-                  askingPrice: currentValues.askedPrice,
-                  attachmentsCount: currentValues.attachments.length,
-                  hasAuthorizationDoc: !!currentValues.authorizationDoc,
-                  hasOwnershipDoc: !!currentValues.ownershipDoc,
-                },
-                null,
-                2
-              )}
-            </pre>
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center gap-3">
+          <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+            <span className="text-red-600 text-sm">!</span>
           </div>
-        </Card>
+          <div>
+            <p className="font-medium">❌ خطأ في الإرسال</p>
+            <p className="text-sm text-red-600 mt-1">{submitError}</p>
+          </div>
+        </div>
       )}
 
-      <div className="space-x-4 flex items-center justify-start">
-        <PrimaryButton
-          type="submit"
-          disabled={loading || fetchLoading}
-          className={
-            loading || fetchLoading ? "opacity-50 cursor-not-allowed" : ""
-          }
-        >
-          {loading ? "جاري الإرسال..." : isEdit ? "تحديث الطلب" : "إرسال الطلب"}
-        </PrimaryButton>
-        <SoftActionButton onClick={() => {}} disabled={loading || fetchLoading}>
-          إلغاء
-        </SoftActionButton>
+      {/* Main Content Grid */}
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Left Column - Basic Information */}
+        <div className="lg:col-span-2 space-y-8">
+          <RequesterInfoSection control={control} />
+          <RequertPropertyInfoSection control={control} />
+
+          {/* Location Section */}
+          <Card title="موقع العقار" className="relative">
+            <div className="flex items-center gap-2 mb-4">
+              <FiMapPin className="w-5 h-5 text-blue-500" />
+              <h3 className="text-lg font-semibold text-gray-800">
+                الموقع الجغرافي
+              </h3>
+            </div>
+            <LocationInput control={control} name="location" />
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700 flex items-center gap-2">
+                <FiInfo className="w-4 h-4" />
+                الإحداثيات الحالية: {currentValues.location.lat.toFixed(
+                  4
+                )}, {currentValues.location.lng.toFixed(4)}
+              </p>
+            </div>
+          </Card>
+
+          {/* Specifications Section */}
+          <Card title="مواصفات العقار" className="relative">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <FiInfo className="w-4 h-4 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  المواصفات
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={addSpecificationItem}
+                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2"
+              >
+                <FiPlus className="w-4 h-4" />
+                إضافة مواصفة
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {Object.entries(specifications).map(([key, spec]) => (
+                <div
+                  key={key}
+                  className="flex gap-3 items-center group p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                >
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        اسم المواصفة
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="أدخل اسم المواصفة"
+                        value={spec.name}
+                        onChange={(e) =>
+                          updateSpecificationItem(key, "name", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        القيمة
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="أدخل القيمة"
+                        value={spec.value as string}
+                        onChange={(e) =>
+                          updateSpecificationItem(key, "value", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeSpecificationItem(key)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100"
+                    title="حذف المواصفة"
+                  >
+                    <FiTrash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 text-center">
+                عدد المواصفات:{" "}
+                <span className="font-semibold text-gray-800">
+                  {Object.keys(specifications).length}
+                </span>
+              </p>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right Column - Documents and Actions */}
+        <div className="space-y-8">
+          {/* Attachments Section */}
+          <Card title="المرفقات">
+            <Uploader
+              control={control}
+              name="attachments"
+              accept="image/*,.pdf,.doc,.docx"
+              label="مرفقات العقار"
+              allowMultiple={true}
+              allowPrimary={true}
+              rules={["الحد الأقصى لحجم الملف 9MB", "الصور، PDF، مستندات Word"]}
+            />
+            <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-700">
+                عدد المرفقات:{" "}
+                <span className="font-semibold">
+                  {currentValues.attachments.length}
+                </span>
+              </p>
+            </div>
+          </Card>
+
+          {/* Authorization Document */}
+          <Card title="وثيقة التفويض">
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">
+                أرفق وثيقة التفويض إذا كنت مفوضاً
+              </p>
+              <Uploader
+                control={control}
+                name="authorizationDoc"
+                accept=".pdf,.doc,.docx,image/*"
+                label="رفع وثيقة التفويض"
+                allowMultiple={false}
+                allowPrimary={false}
+                rules={["الحد الأقصى لحجم الملف 9MB", "PDF، مستندات Word، صور"]}
+              />
+            </div>
+          </Card>
+
+          {/* Ownership Document */}
+          <Card title="وثيقة الملكية">
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">
+                أرفق وثيقة الملكية لإثبات ملكية العقار
+              </p>
+              <Uploader
+                control={control}
+                name="ownershipDoc"
+                accept=".pdf,.doc,.docx,image/*"
+                label="رفع وثيقة الملكية"
+                allowMultiple={false}
+                allowPrimary={false}
+                rules={["الحد الأقصى لحجم الملف 9MB", "PDF، مستندات Word، صور"]}
+              />
+            </div>
+          </Card>
+
+          {/* Submit Section */}
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                <FiFileText className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  {isEdit ? "تحديث الطلب" : "تقديم الطلب"}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {isEdit
+                    ? "سيتم تحديث طلب العقار بعد الضغط على الزر"
+                    : "سيتم إنشاء طلب عقار جديد بعد الضغط على الزر"}
+                </p>
+              </div>
+              <div className="space-y-3">
+                <PrimaryButton
+                  type="submit"
+                  disabled={loading || fetchLoading}
+                  loading={loading}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700"
+                >
+                  {loading
+                    ? "جاري الإرسال..."
+                    : isEdit
+                    ? "تحديث الطلب"
+                    : "تقديم الطلب"}
+                </PrimaryButton>
+                <SoftActionButton
+                  onClick={() => router.back()}
+                  disabled={loading || fetchLoading}
+                  className="w-full py-3"
+                >
+                  إلغاء والعودة
+                </SoftActionButton>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
     </form>
   );

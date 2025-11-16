@@ -6,7 +6,7 @@ import {
   TableColumn,
 } from "@/types/components/Table";
 import { AppointmentRow, MiniUser } from "@/types/dashboard/appointment";
-import { BookingStatus } from "@/types/global";
+import { BookingStatus, BookingStatusRequest } from "@/types/global";
 import { getDefaultProjectpath } from "@/utils/appointment";
 import { formatDate, formatTime } from "@/utils/date";
 import { FaStar } from "react-icons/fa";
@@ -24,7 +24,16 @@ export const bookingStatusMap: Record<BookingStatus, string> = {
   cancelled: "ملغي",
   no_show: "لم يحضر",
 };
+export const bookingStatusMapReques: Record<BookingStatusRequest, string> = {
+  pending: "قيد الانتظار",
+  accepted: "موافقة",
+  rejected: "ملغي",
+};
 
+export const agentBookingStatusMap: Record<BookingStatusRequest, string> = {
+  completed: "مكتمل",
+  no_show: "لم يحضر",
+};
 export const bookingStatusStyle: Record<BookingStatus, string> = {
   pending: "bg-[#FFF8E1] text-[#9C6B00]",
   assigned: "bg-[#E6F4FF] text-[#0369A1]",
@@ -36,23 +45,6 @@ export const bookingStatusStyle: Record<BookingStatus, string> = {
 };
 
 export const appointmentFilters: FilterConfig[] = [
-  {
-    type: "select",
-    label: "الحالة",
-    key: "status",
-    options: [
-      { label: "الكل", value: "all" },
-      { label: "قيد الانتظار", value: "pending" },
-      { label: "تم التعيين", value: "assigned" },
-      { label: "مؤكد", value: "confirmed" },
-      { label: "قيد التنفيذ", value: "in_progress" },
-      { label: "مكتمل", value: "completed" },
-      { label: "ملغي", value: "cancelled" },
-      { label: "لم يحضر", value: "no_show" },
-    ],
-    default: "all",
-  },
-
   // Remove isPaid filter since it's not in API
   // {
   //     key: 'isPaid',
@@ -119,25 +111,7 @@ export function useAppointmentColumns(): TableColumn<AppointmentRow>[] {
           }
         },
       },
-      {
-        key: "createdAt",
-        label: "تاريخ الإنشاء",
-        cell: (val: string) => {
-          if (!val) return <span className="text-gray-400">—</span>;
 
-          try {
-            const d = new Date(val);
-            const date = formatDate(d);
-            return (
-              <div className="">
-                <span className="font-medium">{date}</span>
-              </div>
-            );
-          } catch (error) {
-            return <span className="text-gray-400">تاريخ غير صالح</span>;
-          }
-        },
-      },
       {
         key: "agent",
         label: "الوسيط",
@@ -170,24 +144,7 @@ export function useAppointmentColumns(): TableColumn<AppointmentRow>[] {
           );
         },
       },
-      {
-        key: "reviewStars",
-        label: "تقييم العميل",
-        cell: (val: number | undefined, row?: AppointmentRow) => {
-          // Hide this column for now since it's not in API
-          return <span className="text-xs text-gray-400">—</span>;
 
-          // Original code (commented out since data not available in API)
-          // if (row?.status !== 'completed' || !val) return <span className="text-xs text-gray-400">—</span>;
-          // return (
-          //     <div className="flex items-center gap-0.5 text-amber-500">
-          //         {Array.from({ length: 5 }).map((_, i) => (
-          //             <FaStar key={i} className={i < val ? 'fill-amber-500' : 'fill-gray-300'} />
-          //         ))}
-          //     </div>
-          // );
-        },
-      },
       {
         key: "status",
         label: "الحالة",
@@ -205,26 +162,270 @@ export function useAppointmentColumns(): TableColumn<AppointmentRow>[] {
         },
       },
       {
-        key: "isPaid",
-        label: "الدفع",
-        cell: (val: boolean | undefined, row?: AppointmentRow) => {
-          // Hide this column for now since it's not in API
-          return <span className="text-xs text-gray-400">—</span>;
+        key: "createdAt",
+        label: "تاريخ الإنشاء",
+        cell: (val: string) => {
+          if (!val) return <span className="text-gray-400">—</span>;
 
-          // Original code (commented out since data not available in API)
-          // if (row?.status !== 'completed') return <span className="text-xs text-gray-400">—</span>;
-          // return val ? (
-          //     <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-700">مدفوع</span>
-          // ) : (
-          //     <span className="px-2 py-0.5 rounded-full text-xs bg-rose-100 text-rose-700">غير مدفوع</span>
-          // );
+          try {
+            const d = new Date(val);
+            const date = formatDate(d);
+            return (
+              <div className="">
+                <span className="font-medium">{date}</span>
+              </div>
+            );
+          } catch (error) {
+            return <span className="text-gray-400">تاريخ غير صالح</span>;
+          }
         },
       },
     ],
     [isAdmin]
   );
 }
+export function useCustomerAppointmentColumns(): TableColumn<AppointmentRow>[] {
+  const role = useRoleFromPath();
+  const isAdmin = role === "admin";
 
+  return useMemo(
+    () => [
+      {
+        key: "project",
+        label: "المشروع",
+        cell: (val: MiniProject, row?: AppointmentRow) => {
+          // Handle missing image safely
+          const projectImage = val?.image || "";
+
+          return (
+            <InfoCell
+              image={projectImage}
+              title={val?.title || "لا يوجد عنوان"}
+              defaultImage={getDefaultProjectpath(val?.type)}
+              href={`/projects/${val?.id}`}
+              subtitle={val?.type ? propertyTypeLabels[val.type] : "غير محدد"}
+              imageRounded="lg"
+              subtitleClass={val?.type ? projectTypeColors[val.type] : ""}
+            />
+          );
+        },
+      },
+      {
+        key: "appointmentAt",
+        label: "موعد الزيارة",
+        cell: (val: string) => {
+          if (!val) return <span className="text-gray-400">—</span>;
+
+          try {
+            const d = new Date(val);
+            const date = formatDate(d);
+            const time = formatTime(d);
+            return (
+              <div className="flex flex-col">
+                <span className="font-medium">{date}</span>
+                <span className="text-xs text-gray-500">{time}</span>
+              </div>
+            );
+          } catch (error) {
+            return <span className="text-gray-400">تاريخ غير صالح</span>;
+          }
+        },
+      },
+
+      {
+        key: "agent",
+        label: "الوسيط",
+        cell: (user: MiniUser | undefined) => {
+          if (!user) return <span className="text-gray-400">غير معين</span>;
+
+          return (
+            <InfoCell
+              image={user.image || ""}
+              subtitle={user.email}
+              title={user.name}
+              href={isAdmin ? `/dashboard/admin/agents/${user.id}` : undefined}
+            />
+          );
+        },
+      },
+
+      {
+        key: "status",
+        label: "الحالة",
+        cell: (val: BookingStatus | undefined) => {
+          const style = val
+            ? bookingStatusStyle[val]
+            : "bg-gray-100 text-gray-500";
+          const label = val ? bookingStatusMap[val] : "غير محدد";
+
+          return (
+            <span className={`px-3 py-1 rounded-full text-sm ${style}`}>
+              {label}
+            </span>
+          );
+        },
+      },
+      {
+        key: "createdAt",
+        label: "تاريخ الإنشاء",
+        cell: (val: string) => {
+          if (!val) return <span className="text-gray-400">—</span>;
+
+          try {
+            const d = new Date(val);
+            const date = formatDate(d);
+            return (
+              <div className="">
+                <span className="font-medium">{date}</span>
+              </div>
+            );
+          } catch (error) {
+            return <span className="text-gray-400">تاريخ غير صالح</span>;
+          }
+        },
+      },
+    ],
+    [isAdmin]
+  );
+}
+// Create this in your constants file or add to existing one
+export function useAppointmentRequestColumns(): TableColumn<AppointmentRow>[] {
+  const role = useRoleFromPath();
+  const isAdmin = role === "admin";
+
+  return useMemo(
+    () => [
+      {
+        key: "project",
+        label: "العقار",
+        cell: (val: any, row?: AppointmentRow) => {
+          // Handle missing image safely
+          const projectImage = val?.image || "";
+
+          return (
+            <InfoCell
+              image={projectImage}
+              title={val?.title || "لا يوجد عنوان"}
+              defaultImage={getDefaultProjectpath(val?.type)}
+              href={`/properties/${val?.id}`}
+              subtitle={val?.type || "غير محدد"}
+              imageRounded="lg"
+              subtitleClass={val?.type ? "text-gray-600" : ""}
+            />
+          );
+        },
+      },
+      {
+        key: "appointmentAt",
+        label: "موعد الزيارة",
+        cell: (val: string) => {
+          if (!val) return <span className="text-gray-400">—</span>;
+
+          try {
+            // Parse the combined date-time string
+            const [datePart, timePart] = val.split("T");
+            const date = formatDate(new Date(datePart));
+            const time = timePart
+              ? formatTime(new Date(`2000-01-01T${timePart}`))
+              : "";
+
+            return (
+              <div className="flex flex-col">
+                <span className="font-medium">{date}</span>
+                {time && <span className="text-xs text-gray-500">{time}</span>}
+              </div>
+            );
+          } catch (error) {
+            return <span className="text-gray-400">تاريخ غير صالح</span>;
+          }
+        },
+      },
+      {
+        key: "createdAt",
+        label: "تاريخ الطلب",
+        cell: (val: string) => {
+          if (!val) return <span className="text-gray-400">—</span>;
+
+          try {
+            const d = new Date(val);
+            const date = formatDate(d);
+            const time = formatTime(d);
+            return (
+              <div className="flex flex-col">
+                <span className="font-medium">{date}</span>
+                <span className="text-xs text-gray-500">{time}</span>
+              </div>
+            );
+          } catch (error) {
+            return <span className="text-gray-400">تاريخ غير صالح</span>;
+          }
+        },
+      },
+      {
+        key: "agent",
+        label: "الوسيط المعين",
+        cell: (user: any | undefined) => {
+          if (!user) return <span className="text-gray-400">غير معين</span>;
+
+          return (
+            <InfoCell
+              image={user.image || ""}
+              subtitle={user.email}
+              title={user.name}
+              href={isAdmin ? `/dashboard/admin/agents/${user.id}` : undefined}
+            />
+          );
+        },
+      },
+      {
+        key: "client",
+        label: "العميل",
+        cell: (user: any) => {
+          if (!user) return <span className="text-gray-400">—</span>;
+
+          return (
+            <InfoCell
+              image={user.image || ""}
+              subtitle={user.email}
+              title={user.name}
+              href={isAdmin ? `/dashboard/admin/clients/${user.id}` : undefined}
+            />
+          );
+        },
+      },
+      {
+        key: "status",
+        label: "حالة الطلب",
+        cell: (val: string | undefined) => {
+          const style =
+            val === "pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : val === "confirmed"
+              ? "bg-green-100 text-green-800"
+              : val === "rejected"
+              ? "bg-red-100 text-red-800"
+              : "bg-gray-100 text-gray-500";
+
+          const label =
+            val === "pending"
+              ? "قيد الانتظار"
+              : val === "confirmed"
+              ? "مؤكد"
+              : val === "rejected"
+              ? "مرفوض"
+              : "غير محدد";
+
+          return (
+            <span className={`px-3 py-1 rounded-full text-sm ${style}`}>
+              {label}
+            </span>
+          );
+        },
+      },
+    ],
+    [isAdmin]
+  );
+}
 // Alternative: Create a filtered columns function that removes unavailable columns
 export function useFilteredAppointmentColumns(): TableColumn<AppointmentRow>[] {
   const role = useRoleFromPath();

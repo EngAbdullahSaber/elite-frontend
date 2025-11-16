@@ -93,7 +93,7 @@ export default function Navbar({
           break;
         case "marketer":
           dashboardMenu.children = [
-            { name: "لوحة تحكم المسوق", href: "/dashboard/marketer" },
+            { name: "لوحة تحكم المسوق", href: "/marketer" },
           ];
           break;
         default:

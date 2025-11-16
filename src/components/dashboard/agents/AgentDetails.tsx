@@ -15,6 +15,7 @@ import {
   FaPhone,
   FaUser,
   FaCity,
+  FaMap,
 } from "react-icons/fa";
 import { formatDate } from "@/utils/date";
 import AgentStatusControl from "./AgentStatusControl";
@@ -22,9 +23,26 @@ import FallbackImage from "@/components/shared/FallbackImage";
 
 type Props = {
   agent: AgentRow;
+  onStatusUpdate?: () => void;
 };
 
-export default function AgentDetails({ agent }: Props) {
+export default function AgentDetails({ agent, onStatusUpdate }: Props) {
+  // Get cities and areas from the agent data
+  const cities = agent.cities || [];
+  const areas = agent.areas || [];
+
+  // Get unique city names
+  const cityNames = cities.map((city) => city.name).filter(Boolean);
+  const areaNames = areas.map((area) => area.name).filter(Boolean);
+
+  // Format cities display text
+  const citiesDisplayText =
+    cityNames.length > 0 ? cityNames.join("، ") : "غير محدد";
+
+  // Format areas display text
+  const areasDisplayText =
+    areaNames.length > 0 ? areaNames.join("، ") : "غير محدد";
+
   return (
     <div className="grid grid-cols-1 2xl:grid-cols-6 gap-4 lg:gap-6 items-stretch">
       {/* Left Column - Profile Info */}
@@ -41,8 +59,8 @@ export default function AgentDetails({ agent }: Props) {
 
             <div className="relative w-fit mx-auto">
               <FallbackImage
-                src={agent.image}
-                alt={agent.name}
+                src={agent.user?.profilePhotoUrl || agent.image}
+                alt={agent.user?.fullName || agent.name}
                 width={80}
                 height={80}
                 className="rounded-full w-20 h-20 object-cover border"
@@ -50,7 +68,7 @@ export default function AgentDetails({ agent }: Props) {
             </div>
 
             <h5 className="text-xl font-semibold mt-5 text-center">
-              {agent.name}
+              {agent.user?.fullName || agent.name}
             </h5>
 
             <div className="flex items-center justify-center border-b border-dashed py-2">
@@ -79,8 +97,8 @@ export default function AgentDetails({ agent }: Props) {
             <IconDetail
               icon={<FaPhone className="text-[var(--primary)] w-6 h-6" />}
               label="رقم الهاتف"
-              value={agent.phone}
-              href={`tel:${agent.phone}`}
+              value={agent.user?.phoneNumber || agent.phone}
+              href={`tel:${agent.user?.phoneNumber || agent.phone}`}
               className="ltr-data block"
             />
             <IconDetail
@@ -88,17 +106,28 @@ export default function AgentDetails({ agent }: Props) {
                 <FaEnvelope className="text-[var(--secondary-500)] w-6 h-6" />
               }
               label="البريد الإلكتروني"
-              value={agent.email}
-              href={`mailto:${agent.email}`}
+              value={agent.user?.email || agent.email}
+              href={`mailto:${agent.user?.email || agent.email}`}
             />
             <IconDetail
               icon={<FaCity className="text-blue-500 w-6 h-6" />}
-              label="المدينة"
-              value={agent.city}
+              label="المدن"
+              value={citiesDisplayText}
             />
+            {areaNames.length > 0 && (
+              <IconDetail
+                icon={<FaMap className="text-green-500 w-6 h-6" />}
+                label="المناطق"
+                value={areasDisplayText}
+              />
+            )}
           </div>
 
-          <AgentStatusControl currentStatus={agent.status} agent={agent} />
+          <AgentStatusControl
+            onStatusUpdate={onStatusUpdate}
+            currentStatus={agent.status}
+            agent={agent}
+          />
         </DashboardSectionCard>
       </div>
 
@@ -119,29 +148,34 @@ export default function AgentDetails({ agent }: Props) {
                 <FaIdCard className="text-[var(--secondary-500)] w-10 h-10" />
               }
               value={
-                agent.verificationStatus === "verified" ? "موثق" : "غير موثق"
+                agent.user?.verificationStatus === "verified"
+                  ? "موثق"
+                  : "غير موثق"
               }
               label="حالة التوثيق"
             />
             <CardInfo
               icon={<FaCalendarAlt className="text-green-600 w-10 h-10" />}
-              value={formatDate(agent.joinedAt)}
+              value={formatDate(agent.createdAt || agent.joinedAt)}
               label="تاريخ الانضمام"
             />
             <CardInfo
               icon={<FaMapMarkerAlt className="text-yellow-600 w-10 h-10" />}
-              value={agent.city}
-              label="المدينة"
+              value={`${cityNames.length} مدينة`}
+              label="عدد المدن"
             />
           </div>
 
           {/* Personal Details */}
           <div className="grid grid-cols-12 gap-4 mt-6">
             <div className="col-span-12 sm:col-span-6 xl:col-span-4 flex flex-col gap-3">
-              <InfoBlock label="الاسم الكامل" value={agent.name} />
+              <InfoBlock
+                label="الاسم الكامل"
+                value={agent.user?.fullName || agent.name}
+              />
               <InfoBlock
                 label="رقم الهاتف"
-                value={agent.phone}
+                value={agent.user?.phoneNumber || agent.phone}
                 valueClassName="ltr-data block"
               />
               <InfoBlock
@@ -150,16 +184,17 @@ export default function AgentDetails({ agent }: Props) {
               />
             </div>
             <div className="col-span-12 sm:col-span-6 xl:col-span-4 flex flex-col gap-3">
-              <InfoBlock label="البريد الإلكتروني" value={agent.email} />
               <InfoBlock
-                label="تاريخ الانضمام"
-                value={formatDate(agent.joinedAt)}
+                label="البريد الإلكتروني"
+                value={agent.user?.email || agent.email}
               />
               <InfoBlock
-                label="تاريخ الميلاد"
-                value={
-                  agent.dateOfBirth ? formatDate(agent.dateOfBirth) : "غير محدد"
-                }
+                label="تاريخ الانضمام"
+                value={formatDate(agent.createdAt || agent.joinedAt)}
+              />
+              <InfoBlock
+                label="آخر تحديث"
+                value={formatDate(agent.updatedAt)}
               />
             </div>
             <div className="col-span-12 sm:col-span-6 xl:col-span-4 flex flex-col gap-3">
@@ -170,10 +205,75 @@ export default function AgentDetails({ agent }: Props) {
               <InfoBlock
                 label="حالة التوثيق"
                 value={
-                  agent.verificationStatus === "verified" ? "موثق" : "غير موثق"
+                  agent.user?.verificationStatus === "verified"
+                    ? "موثق"
+                    : "غير موثق"
                 }
               />
-              <InfoBlock label="المدينة" value={agent.city} />
+              <InfoBlock
+                label="عدد المدن"
+                value={`${cityNames.length} مدينة`}
+              />
+            </div>
+          </div>
+
+          {/* Cities and Areas Section */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Cities Section */}
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <FaCity className="text-blue-500" />
+                المدن ({cityNames.length})
+              </h4>
+              {cityNames.length > 0 ? (
+                <div className="space-y-2">
+                  {cities.map((city, index) => (
+                    <div
+                      key={city.id}
+                      className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
+                    >
+                      <span className="text-sm text-gray-700">{city.name}</span>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {city.isActive ? "نشط" : "غير نشط"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">لا توجد مدن محددة</p>
+              )}
+            </div>
+
+            {/* Areas Section */}
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <FaMap className="text-green-500" />
+                المناطق ({areaNames.length})
+              </h4>
+              {areaNames.length > 0 ? (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {areas.map((area, index) => (
+                    <div
+                      key={area.id}
+                      className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
+                    >
+                      <div>
+                        <span className="text-sm text-gray-700 block">
+                          {area.name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {area.city?.name}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {area.isActive ? "نشط" : "غير نشط"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">لا توجد مناطق محددة</p>
+              )}
             </div>
           </div>
 
@@ -189,32 +289,34 @@ export default function AgentDetails({ agent }: Props) {
 
           {/* Document Links */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {agent.identityProofUrl && (
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-semibold mb-2">وثيقة الهوية:</h4>
-                <a
-                  href={agent.identityProofUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 text-sm break-all"
-                >
-                  عرض الوثيقة
-                </a>
-              </div>
-            )}
-            {agent.residencyDocumentUrl && (
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-semibold mb-2">وثيقة الإقامة:</h4>
-                <a
-                  href={agent.residencyDocumentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 text-sm break-all"
-                >
-                  عرض الوثيقة
-                </a>
-              </div>
-            )}
+            {agent.identityProofUrl &&
+              agent.identityProofUrl !== "/uploads/images/undefined" && (
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <h4 className="font-semibold mb-2">وثيقة الهوية:</h4>
+                  <a
+                    href={agent.identityProofUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 text-sm break-all"
+                  >
+                    عرض الوثيقة
+                  </a>
+                </div>
+              )}
+            {agent.residencyDocumentUrl &&
+              agent.residencyDocumentUrl !== "/uploads/images/undefined" && (
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <h4 className="font-semibold mb-2">وثيقة الإقامة:</h4>
+                  <a
+                    href={agent.residencyDocumentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 text-sm break-all"
+                  >
+                    عرض الوثيقة
+                  </a>
+                </div>
+              )}
           </div>
         </DashboardSectionCard>
       </div>

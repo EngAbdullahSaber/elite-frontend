@@ -23,15 +23,9 @@ interface DetailedProperty {
   areaM2?: string;
   price?: string;
   specifications?: {
-    pool?: boolean;
-    garden?: boolean;
-    parking?: boolean;
-    furnished?: boolean;
-    [key: string]: boolean | undefined;
+    [key: string]: string | undefined;
   };
   guarantees?: {
-    warranty?: string;
-    maintenance?: string;
     [key: string]: string | undefined;
   };
   city?: {
@@ -62,9 +56,10 @@ interface DetailedProperty {
   latitude?: number | null;
   longitude?: number | null;
   isActive?: boolean;
+  agentsPercentage?: string;
 }
 
-// Mock similar projects (you might want to fetch these from an API too)
+// Mock similar projects
 const similarProjects: Property[] = [
   {
     id: "dihshjs5s5",
@@ -106,6 +101,7 @@ export default function ProjectDetailsPage() {
   const [property, setProperty] = useState<DetailedProperty | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchProperty = async () => {
       try {
@@ -113,7 +109,6 @@ export default function ProjectDetailsPage() {
         setError(null);
 
         const propertyData = await getPropertyById(propertyId);
-
         setProperty(propertyData);
       } catch (err) {
         console.error("Error fetching property:", err);
@@ -127,6 +122,7 @@ export default function ProjectDetailsPage() {
 
     fetchProperty();
   }, [propertyId]);
+
   // Map API property data to the format expected by components
   const mapPropertyToDisplay = (propertyData: DetailedProperty) => {
     // Extract images from medias array, sorted by orderIndex
@@ -150,19 +146,21 @@ export default function ProjectDetailsPage() {
           "/main/projects/property-4.webp",
         ];
 
+    // Convert specifications object to array of strings for display
+    const specificationsArray = propertyData.specifications
+      ? Object.entries(propertyData.specifications).map(([key, value]) => {
+          return `${key}: ${value}`;
+        })
+      : [];
+
     // Convert guarantees object to array of strings
     const guaranteesArray = propertyData.guarantees
       ? Object.entries(propertyData.guarantees).map(([key, value]) => {
-          const guaranteeLabels: Record<string, string> = {
-            warranty: "ضمان",
-            maintenance: "صيانة",
-          };
-          const label = guaranteeLabels[key] || key;
-          return `${label}: ${value}`;
+          return `${key}: ${value}`;
         })
-      : ["10 سنوات هيكل إنشائي", "2 سنة كهرباء وسباكة"];
+      : [];
 
-    // Map details object based on API response
+    // Map basic details object based on API response
     const details: Record<string, { name: string; value: string }> = {
       area: {
         name: "المساحة",
@@ -215,32 +213,15 @@ export default function ProjectDetailsPage() {
       },
     };
 
-    // Add specification-based details
-    if (propertyData.specifications) {
-      if (propertyData.specifications.pool !== undefined) {
-        details.pool = {
-          name: "مسبح",
-          value: propertyData.specifications.pool ? "نعم" : "لا",
-        };
-      }
-      if (propertyData.specifications.garden !== undefined) {
-        details.garden = {
-          name: "حديقة",
-          value: propertyData.specifications.garden ? "نعم" : "لا",
-        };
-      }
-      if (propertyData.specifications.parking !== undefined) {
-        details.parking = {
-          name: "موقف سيارات",
-          value: propertyData.specifications.parking ? "نعم" : "لا",
-        };
-      }
-      if (propertyData.specifications.furnished !== undefined) {
-        details.furnished = {
-          name: "مفروش",
-          value: propertyData.specifications.furnished ? "نعم" : "لا",
-        };
-      }
+    // Add agents percentage if available
+    if (
+      propertyData.agentsPercentage &&
+      propertyData.agentsPercentage !== "0"
+    ) {
+      details.agents_percentage = {
+        name: "نسبة الوسيط",
+        value: `${propertyData.agentsPercentage}%`,
+      };
     }
 
     // Add location coordinates if available
@@ -249,6 +230,32 @@ export default function ProjectDetailsPage() {
         name: "الإحداثيات",
         value: `${propertyData.latitude}, ${propertyData.longitude}`,
       };
+    }
+
+    // Add specifications as individual details
+    if (propertyData.specifications) {
+      Object.entries(propertyData.specifications).forEach(
+        ([key, value], index) => {
+          if (value) {
+            details[`spec_${index}`] = {
+              name: key,
+              value: value,
+            };
+          }
+        }
+      );
+    }
+
+    // Add guarantees as individual details
+    if (propertyData.guarantees) {
+      Object.entries(propertyData.guarantees).forEach(([key, value], index) => {
+        if (value) {
+          details[`guarantee_${index}`] = {
+            name: key,
+            value: value,
+          };
+        }
+      });
     }
 
     return {
@@ -270,10 +277,12 @@ export default function ProjectDetailsPage() {
         ? `${propertyData.areaM2} متر مربع`
         : "غير محدد",
       description: propertyData.description || "لا يوجد وصف متاح",
-      videoUrl: undefined, // Your API response doesn't include videoUrl
+      videoUrl: undefined,
       guarantees: guaranteesArray,
+      specifications: specificationsArray, // Add specifications array
       details,
       images,
+      agentsPercentage: propertyData.agentsPercentage,
     };
   };
 
@@ -379,13 +388,17 @@ export default function ProjectDetailsPage() {
             rooms={displayProperty.rooms}
             baths={displayProperty.baths}
             area={displayProperty.area}
+            agentsPercentage={displayProperty.agentsPercentage}
           />
 
           <PropertyDescriptionSection
             description={displayProperty.description}
           />
 
-          <PropertyInfoSection details={displayProperty.details} />
+          <PropertyInfoSection
+            details={displayProperty.details}
+            specifications={displayProperty.specifications} // Pass specifications array
+          />
 
           <GuaranteesSection guarantees={displayProperty.guarantees} />
 

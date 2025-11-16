@@ -5,7 +5,7 @@ import InfoCell from "../shared/InfoCell";
 import Popup from "../shared/Popup";
 import { MdClose } from "react-icons/md";
 import UserAssignmentToggle from "./UserAssignmentToggle";
-import UserAssignmentTogglePagination from "./UserAssignmentTogglePagination";
+import UserAssignmentTogglePagination from "./UserAssignmentTogglePaginationMultiSelect";
 
 type User = {
   id: number;
@@ -82,15 +82,15 @@ export default function UserChangerPagination({
       ) : (
         <div className="flex items-center gap-2 border p-2 rounded-md bg-white">
           <div className="flex gap-2">
-            <InfoCell
-              image={user.image}
-              subtitle={user.email}
-              title={user.name}
-              href={`/dashboard/admin/${
-                label === "وسيط" ? "agents" : "clients"
-              }/${user.id}`}
-              imageRounded="full"
-            />
+            {
+              <InfoCell
+                image={user.image}
+                subtitle={user.email}
+                title={user.name}
+                href={``}
+                imageRounded="full"
+              />
+            }
             {!disabled && (
               <button
                 onClick={handleCancel}

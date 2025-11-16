@@ -7,7 +7,7 @@ export default function AddPropertyPage() {
   return (
     <div>
       <DashboardHeaderTitle path={["العقارات", "إضافة عقار جديد"]}>
-        <Link className="btn-primary" href="/dashboard/admin/projects">
+        <Link className="btn-primary" href="/dashboard/admin/properties">
           <FaHome /> عرض جميع العقارات
         </Link>
       </DashboardHeaderTitle>

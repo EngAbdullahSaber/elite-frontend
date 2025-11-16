@@ -47,7 +47,7 @@ export default function PartnerPage() {
         }
       } catch (err) {
         console.error("Error fetching partner details:", err);
-        setError("فشل في تحميل بيانات الشريك");
+        setError("فشل في تحميل بيانات المسوق");
         notFound();
       } finally {
         setLoading(false);

@@ -134,10 +134,10 @@ export default function EditProjectPage({ params }: Props) {
         setLoading(true);
         setError(null);
 
-         const propertyData = await getPropertyById(projectId);
- 
+        const propertyData = await getPropertyById(projectId);
+
         const formData = transformPropertyToFormValues(propertyData);
- 
+
         setProject(formData);
       } catch (err: any) {
         console.error("Error fetching property:", err);
@@ -171,10 +171,10 @@ export default function EditProjectPage({ params }: Props) {
       <div>
         <DashboardHeaderTitle path={["المشاريع", "جاري التحميل..."]}>
           <div className="flex gap-4 flex-wrap">
-            <Link className="btn-primary" href={`/projects/${projectId}`}>
+            <Link className="btn-primary" href={`/properties/${projectId}`}>
               <BiBuilding /> صفحة المشروع
             </Link>
-            <Link className="btn-primary" href="/dashboard/admin/projects">
+            <Link className="btn-primary" href="/dashboard/admin/properties">
               <BiListUl /> عرض جميع المشاريع
             </Link>
           </div>
@@ -201,7 +201,7 @@ export default function EditProjectPage({ params }: Props) {
       <div>
         <DashboardHeaderTitle path={["المشاريع", "خطأ في التحميل"]}>
           <div className="flex gap-4 flex-wrap">
-            <Link className="btn-primary" href="/dashboard/admin/projects">
+            <Link className="btn-primary" href="/dashboard/admin/properties">
               <BiListUl /> عرض جميع المشاريع
             </Link>
           </div>
@@ -212,7 +212,7 @@ export default function EditProjectPage({ params }: Props) {
             <div className="text-red-600 text-xl mb-4">⚠️ {error}</div>
             <div className="text-gray-500 mb-6">رقم العقار: {projectId}</div>
             <div className="flex gap-4 justify-center flex-wrap">
-              <Link href="/dashboard/admin/projects" className="btn-primary">
+              <Link href="/dashboard/admin/properties" className="btn-primary">
                 العودة إلى قائمة العقارات
               </Link>
               <button

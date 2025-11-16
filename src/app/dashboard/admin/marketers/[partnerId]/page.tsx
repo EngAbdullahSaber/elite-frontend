@@ -51,7 +51,7 @@ export default function PartnerPage({ params }: Props) {
         }
       } catch (err) {
         console.error("Error fetching partner details:", err);
-        setError("فشل في تحميل بيانات الشريك");
+        setError("فشل في تحميل بيانات المسوق");
         notFound();
       } finally {
         setLoading(false);
@@ -79,7 +79,7 @@ export default function PartnerPage({ params }: Props) {
           onClick={() => router.push("/dashboard/admin/partners")}
           className="btn-primary"
         >
-          <BiGroup /> العودة إلى قائمة الشركاء
+          <BiGroup /> العودة إلى قائمة المسوقين
         </button>
       </div>
     );
@@ -93,14 +93,8 @@ export default function PartnerPage({ params }: Props) {
   return (
     <>
       <DashboardHeaderTitle
-        path={["الشركاء", `تفاصيل الشريك - ${partner.name}`]}
-      >
-        <div className="flex gap-4 flex-wrap">
-          <Link className="btn-primary" href="/dashboard/admin/marketers">
-            <BiGroup /> عرض جميع الشركاء
-          </Link>
-        </div>
-      </DashboardHeaderTitle>
+        path={["المسوقين", `تفاصيل المسوق - ${partner.name}`]}
+      ></DashboardHeaderTitle>
 
       <PartnerDetails partner={partner} performance={performanceData} />
     </>

@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import DashboardHeaderTitle from "../DashboardHeaderTitle";
-import DownloadContent from "@/components/shared/DownloadContent";
 import Link from "next/link";
 import { BiGroup } from "react-icons/bi";
 import AgentDetails from "./AgentDetails";
@@ -19,52 +18,54 @@ export default function AgentDetailsWrapper({ agentId }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAgent = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchAgent = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const agentData = await getAgentById(agentId);
+      const agentData = await getAgentById(agentId);
 
-        if (!agentData) {
-          setError("الوسيط غير موجود");
-          return;
-        }
-
-        // Map API response to the expected format for AgentDetails component
-        const mappedAgent: AgentRow = {
-          id: agentData.id.toString(),
-          name: agentData?.user?.fullName || "غير متوفر",
-          email: agentData?.user?.email || "غير متوفر",
-          phone: agentData?.user?.phoneNumber || "غير متوفر",
-          status: agentData.status,
-          activationStatus: agentData.user?.isActive ? "active" : "inactive",
-          joinedAt: agentData.createdAt,
-          city: agentData.city?.name || "غير متوفر",
-          kycStatus: agentData.status,
-          kycNotes: agentData.kycNotes || "لا توجد ملاحظات",
-          verificationStatus: agentData.user?.verificationStatus || "غير محدد",
-          identityProofUrl: ImageBaseUrl + agentData.identityProofUrl,
-          residencyDocumentUrl: ImageBaseUrl + agentData.residencyDocumentUrl,
-          userId: agentData.user?.id.toString(),
-          address: agentData.address || "غير متوفر",
-          dateOfBirth: agentData.user?.dateOfBirth,
-          gender: agentData.user?.gender,
-          nationality: agentData.user?.nationality,
-          // Add image from user profile
-          image: ImageBaseUrl + agentData.user?.profilePhotoUrl || null,
-        };
-
-        setAgent(mappedAgent);
-      } catch (err) {
-        console.error("Error fetching agent details:", err);
-        setError("فشل في تحميل بيانات الوسيط");
-      } finally {
-        setLoading(false);
+      if (!agentData) {
+        setError("الوسيط غير موجود");
+        return;
       }
-    };
 
+      // Map API response to the expected format for AgentDetails component
+      const mappedAgent: AgentRow = {
+        id: agentData.id.toString(),
+        name: agentData?.user?.fullName || "غير متوفر",
+        email: agentData?.user?.email || "غير متوفر",
+        phone: agentData?.user?.phoneNumber || "غير متوفر",
+        status: agentData.status,
+        activationStatus: agentData.user?.isActive ? "active" : "inactive",
+        joinedAt: agentData.createdAt,
+        cities: agentData.cities || "غير متوفر",
+        areas: agentData.areas || "غير متوفر",
+        kycStatus: agentData.status,
+        kycNotes: agentData.kycNotes || "لا توجد ملاحظات",
+        verificationStatus: agentData.user?.verificationStatus || "غير محدد",
+        identityProofUrl: ImageBaseUrl + agentData.identityProofUrl,
+        residencyDocumentUrl: ImageBaseUrl + agentData.residencyDocumentUrl,
+        userId: agentData.user?.id.toString(),
+        address: agentData.address || "غير متوفر",
+        dateOfBirth: agentData.user?.dateOfBirth,
+        gender: agentData.user?.gender,
+        nationality: agentData.user?.nationality,
+        // Add image from user profile
+        image: agentData.user?.profilePhotoUrl
+          ? ImageBaseUrl + agentData.user?.profilePhotoUrl
+          : "",
+      };
+
+      setAgent(mappedAgent);
+    } catch (err) {
+      console.error("Error fetching agent details:", err);
+      setError("فشل في تحميل بيانات الوسيط");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
     if (agentId) {
       fetchAgent();
     }
@@ -107,14 +108,13 @@ export default function AgentDetailsWrapper({ agentId }: Props) {
     <>
       <DashboardHeaderTitle path={["الوسطاء", `تفاصيل الوسيط - ${agent.name}`]}>
         <div className="flex gap-4 flex-wrap">
-          <DownloadContent text="تحميل المعلومات" />
           <Link className="btn-primary" href="/dashboard/admin/agents">
             <BiGroup /> عرض جميع الوسطاء
           </Link>
         </div>
       </DashboardHeaderTitle>
 
-      <AgentDetails agent={agent} />
+      <AgentDetails agent={agent} onStatusUpdate={fetchAgent} />
     </>
   );
 }
